@@ -11,9 +11,8 @@ public class User {
     private String mEmail;
     private boolean mGender;
 
-    public User(String name, String phone, String email){
+    public User(String name, String email){
         mName = name;
-        mPhone = phone;
         mEmail = email;
     }
 
