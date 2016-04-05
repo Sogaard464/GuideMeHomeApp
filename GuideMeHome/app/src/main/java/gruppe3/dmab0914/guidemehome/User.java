@@ -10,7 +10,13 @@ public class User {
     private double mLatitude;
     private String mEmail;
     private boolean mGender;
+    private String mPassword;
 
+    public User(String name, String email, String password){
+        mName = name;
+        mEmail = email;
+        mPassword = password;
+    }
     public User(String name, String email){
         mName = name;
         mEmail = email;

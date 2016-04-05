@@ -5,6 +5,7 @@ package gruppe3.dmab0914.guidemehome;
  */
 
 import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -16,6 +17,27 @@ import android.widget.Toast;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import com.google.gson.Gson;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
@@ -73,11 +95,16 @@ public class SignupActivity extends AppCompatActivity {
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
+        User userObject = new User(name, email, password);
+        UserPostTask postTaskObject = new UserPostTask();
+        postTaskObject.execute(userObject);
 
 
-                new android.os.Handler().postDelayed(
+
+        new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
+
                         // On complete call either onSignupSuccess or onSignupFailed
                         // depending on success
                         onSignupSuccess();
@@ -130,5 +157,79 @@ public class SignupActivity extends AppCompatActivity {
         }
 
         return valid;
+    }
+
+    private class UserPostTask extends AsyncTask<User, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(User... params) {
+            String requestMethod;
+            String urlString;
+            requestMethod = "POST";
+            urlString = "http://guidemehome.azurewebsites.net/api/user";
+
+            Gson gson = new Gson();
+            String urlParameters = gson.toJson(params);
+
+            int timeout = 5000;
+            URL url;
+            HttpURLConnection connection = null;
+            try {
+                // Create connection
+
+                url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(requestMethod);
+                connection.setRequestProperty("Content-Type",
+                        "application/json;charset=utf-8");
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(timeout);
+                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
+
+                connection.setReadTimeout(timeout);
+                connection.connect();
+                // Send request
+                OutputStream wr = new BufferedOutputStream(
+                        connection.getOutputStream());
+                wr.write(urlParameters.getBytes());
+                wr.flush();
+                wr.close();
+                // Get Response
+                InputStream is = connection.getInputStream();
+                BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+                String line;
+                StringBuffer response = new StringBuffer();
+                while ((line = rd.readLine()) != null) {
+                    response.append(line);
+                    response.append('\r');
+                }
+                rd.close();
+
+            } catch (SocketTimeoutException ex) {
+                ex.printStackTrace();
+
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException ex) {
+
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return "All done";
+        }
     }
 }
