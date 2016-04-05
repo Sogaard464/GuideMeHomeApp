@@ -12,9 +12,9 @@ public class User {
     private boolean mGender;
     private String mPassword;
 
-    public User(String name, String email, String password){
+    public User(String name, String phone, String password){
         mName = name;
-        mEmail = email;
+        mPhone = phone;
         mPassword = password;
     }
     public User(String name, String email){

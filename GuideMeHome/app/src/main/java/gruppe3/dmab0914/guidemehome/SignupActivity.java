@@ -100,19 +100,11 @@ public class SignupActivity extends AppCompatActivity {
         postTaskObject.execute(userObject);
 
 
-
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-
                         // On complete call either onSignupSuccess or onSignupFailed
                         // depending on success
-                        onSignupSuccess();
+                        //onSignupSuccess();
                         // onSignupFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
-
+                        //progressDialog.dismiss();
     }
 
 
