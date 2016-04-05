@@ -30,6 +30,8 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -44,8 +46,8 @@ public class SignupActivity extends AppCompatActivity {
 
     @Bind(R.id.input_name)
     EditText _nameText;
-    @Bind(R.id.input_email)
-    EditText _emailText;
+    @Bind(R.id.input_phone)
+    EditText _phoneText;
     @Bind(R.id.input_password)
     EditText _passwordText;
     @Bind(R.id.btn_signup)
@@ -92,26 +94,22 @@ public class SignupActivity extends AppCompatActivity {
         progressDialog.show();
 
         String name = _nameText.getText().toString();
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+        String phone = _phoneText.getText().toString();
+        try {
+            User userObject = new User(name, phone, PasswordHash.createHash(_passwordText.getText().toString()));
+            UserPostTask postTaskObject = new UserPostTask();
+            postTaskObject.execute(userObject);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
 
-        User userObject = new User(name, email, password);
-        UserPostTask postTaskObject = new UserPostTask();
-        postTaskObject.execute(userObject);
 
 
-
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
+        //onSignupSuccess();
+        // onSignupFailed();
+        //progressDialog.dismiss();
 
     }
 
@@ -132,7 +130,7 @@ public class SignupActivity extends AppCompatActivity {
         boolean valid = true;
 
         String name = _nameText.getText().toString();
-        String email = _emailText.getText().toString();
+        String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
 
         if (name.isEmpty() || name.length() < 3) {
@@ -142,11 +140,11 @@ public class SignupActivity extends AppCompatActivity {
             _nameText.setError(null);
         }
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+        if (phone.isEmpty()) {
+            _phoneText.setError("enter a valid phone number");
             valid = false;
         } else {
-            _emailText.setError(null);
+            _phoneText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
