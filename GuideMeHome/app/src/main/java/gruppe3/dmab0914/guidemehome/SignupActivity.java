@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+
 import com.google.gson.Gson;
 
 import java.io.BufferedOutputStream;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -95,22 +97,29 @@ public class SignupActivity extends AppCompatActivity {
 
         String name = _nameText.getText().toString();
         String phone = _phoneText.getText().toString();
+        String password = _passwordText.getText().toString();
+
+        User userObject = new User(name, phone, password);
+        UserPostTask postTaskObject = new UserPostTask();
+        String code = "";
         try {
-            User userObject = new User(name, phone, PasswordHash.createHash(_passwordText.getText().toString()));
-            UserPostTask postTaskObject = new UserPostTask();
-            postTaskObject.execute(userObject);
-        } catch (NoSuchAlgorithmException e) {
+            code = postTaskObject.execute(userObject).get();
+        } catch (InterruptedException e) {
             e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
+        } catch (ExecutionException e) {
             e.printStackTrace();
         }
-
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        //onSignupSuccess();
-                        // onSignupFailed();
-                        //progressDialog.dismiss();
-
+        if(code.equals("201")){
+            onSignupSuccess();
+        }
+        else{
+            onSignupFailed();
+        }
+        progressDialog.dismiss();
+        // On complete call either onSignupSuccess or onSignupFailed
+        // depending on success
+        //onSignupSuccess();
+        // onSignupFailed();
     }
 
 
@@ -169,9 +178,10 @@ public class SignupActivity extends AppCompatActivity {
             String urlString;
             requestMethod = "POST";
             urlString = "http://guidemehome.azurewebsites.net/api/user";
+            int code = 0;
 
             Gson gson = new Gson();
-            String urlParameters = gson.toJson(params);
+            String urlParameters = gson.toJson(params[0]);
 
             int timeout = 5000;
             URL url;
@@ -199,6 +209,10 @@ public class SignupActivity extends AppCompatActivity {
                 wr.flush();
                 wr.close();
                 // Get Response
+                code = connection.getResponseCode();
+                if(code == 400){
+                    return String.valueOf(code);
+                }
                 InputStream is = connection.getInputStream();
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is));
                 String line;
@@ -227,7 +241,9 @@ public class SignupActivity extends AppCompatActivity {
                     connection.disconnect();
                 }
             }
-            return "All done";
+            return String.valueOf(code);
         }
+
+
     }
 }
