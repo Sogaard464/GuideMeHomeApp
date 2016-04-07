@@ -231,6 +231,7 @@ public class LoginActivity extends AppCompatActivity {
                 User u = gson.fromJson(response.toString(),User.class);
                 SharedPreferences mPrefs = getSharedPreferences("token",MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                prefsEditor.clear();
                 prefsEditor.putString("token", u.getToken());
                 prefsEditor.commit();
 

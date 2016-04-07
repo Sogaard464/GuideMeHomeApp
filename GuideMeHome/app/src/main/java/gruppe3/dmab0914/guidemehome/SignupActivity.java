@@ -5,6 +5,7 @@ package gruppe3.dmab0914.guidemehome;
  */
 
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -222,6 +223,12 @@ public class SignupActivity extends AppCompatActivity {
                     response.append('\r');
                 }
                 rd.close();
+                User u = gson.fromJson(response.toString(),User.class);
+                SharedPreferences mPrefs = getSharedPreferences("token",MODE_PRIVATE);
+                SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                prefsEditor.clear();
+                prefsEditor.putString("token", u.getToken());
+                prefsEditor.commit();
 
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();
