@@ -99,7 +99,7 @@ public class SignupActivity extends AppCompatActivity {
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        User userObject = new User(name, phone, password);
+        LoginUser userObject = new LoginUser(name, phone, password);
         UserPostTask postTaskObject = new UserPostTask();
         String code = "";
         try {
@@ -166,18 +166,18 @@ public class SignupActivity extends AppCompatActivity {
         return valid;
     }
 
-    private class UserPostTask extends AsyncTask<User, String, String> {
+    private class UserPostTask extends AsyncTask<LoginUser, String, String> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
         }
 
         @Override
-        protected String doInBackground(User... params) {
+        protected String doInBackground(LoginUser... params) {
             String requestMethod;
             String urlString;
             requestMethod = "POST";
-            urlString = "http://guidemehome.azurewebsites.net/api/user";
+            urlString = "http://guidemehome.azurewebsites.net/signup";
             int code = 0;
 
             Gson gson = new Gson();

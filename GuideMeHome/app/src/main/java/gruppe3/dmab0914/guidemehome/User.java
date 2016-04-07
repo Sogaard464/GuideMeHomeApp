@@ -10,13 +10,9 @@ public class User {
     private double mLatitude;
     private String mEmail;
     private boolean mGender;
-    private String mPassword;
+    private String mToken;
 
-    public User(String name, String phone, String password){
-        mName = name;
-        mPhone = phone;
-        mPassword = password;
-    }
+
     public User(String name, String email){
         mName = name;
         mEmail = email;
@@ -69,4 +65,6 @@ public class User {
     public void setGender(boolean gender) {
         mGender = gender;
     }
+
+
 }
