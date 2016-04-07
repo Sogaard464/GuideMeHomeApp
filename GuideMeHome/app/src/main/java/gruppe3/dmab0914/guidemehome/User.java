@@ -66,5 +66,11 @@ public class User {
         mGender = gender;
     }
 
+    public String getToken() {
+        return mToken;
+    }
 
+    public void setToken(String token) {
+        mToken = token;
+    }
 }

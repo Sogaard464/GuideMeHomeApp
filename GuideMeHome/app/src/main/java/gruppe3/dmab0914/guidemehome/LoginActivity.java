@@ -5,6 +5,7 @@ package gruppe3.dmab0914.guidemehome;
  */
 
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -105,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-        if(code.equals("201")){
+        if(code.equals("200")){
             onLoginSuccess();
         }
         progressDialog.dismiss();
@@ -133,7 +134,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginSuccess() {
-        _loginButton.setEnabled(true);
+        _loginButton.setEnabled(false);
         setResult(1);
         finish();
     }
@@ -227,6 +228,11 @@ public class LoginActivity extends AppCompatActivity {
                     response.append('\r');
                 }
                 rd.close();
+                User u = gson.fromJson(response.toString(),User.class);
+                SharedPreferences mPrefs = getSharedPreferences("token",MODE_PRIVATE);
+                SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                prefsEditor.putString("token", u.getToken());
+                prefsEditor.commit();
 
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();

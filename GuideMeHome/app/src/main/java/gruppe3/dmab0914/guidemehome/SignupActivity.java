@@ -109,7 +109,7 @@ public class SignupActivity extends AppCompatActivity {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-        if(code.equals("201")){
+        if(code.equals("200")){
             onSignupSuccess();
         }
         else{
