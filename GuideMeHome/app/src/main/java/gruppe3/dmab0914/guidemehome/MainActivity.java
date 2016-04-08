@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
+    private Toolbar toolbar;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
        // adapter.addFragment(new UserManageFragment(), "User");
-        //adapter.addFragment(new MapFragment(), "Map");
+        adapter.addFragment(new MapFragment(), "Map");
         //adapter.addFragment(new TrackedPersonsFragment(), "Persons");
 
         viewPager.setAdapter(adapter);
@@ -68,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         //if loginactivity ends succesfully initialize UI
-        /*if (requestCode == 1) {
+        if (requestCode == 1) {
             if (resultCode == 1) {
                 setContentView(R.layout.activity_main);
                 toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -92,6 +94,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 // initialising the object of the FragmentManager. Here I'm passing getSupportFragmentManager(). You can pass getFragmentManager() if you are coding for Android 3.0 or above.
             }
-        }*/
+        }
     }
 }
