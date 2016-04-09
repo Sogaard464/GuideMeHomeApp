@@ -109,6 +109,9 @@ public class LoginActivity extends AppCompatActivity {
         if(code.equals("200")){
             onLoginSuccess();
         }
+        else{
+            onLoginFailed();
+        }
         progressDialog.dismiss();
     }
 
@@ -134,8 +137,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginSuccess() {
-        _loginButton.setEnabled(false);
-        setResult(1);
+        _loginButton.setEnabled(true);
+        setResult(1,null);
         finish();
     }
 
@@ -217,6 +220,9 @@ public class LoginActivity extends AppCompatActivity {
                     return String.valueOf(code);
                 }
                 else if(code == 404){
+                    return String.valueOf(code);
+                }
+                else if(code == 500){
                     return String.valueOf(code);
                 }
                 InputStream is = connection.getInputStream();
