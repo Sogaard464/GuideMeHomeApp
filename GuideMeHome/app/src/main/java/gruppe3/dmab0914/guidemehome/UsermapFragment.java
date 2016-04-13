@@ -82,6 +82,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
         String json = mPrefs.getString("phone", "");
         mMyChannel = json;
         mMapView = (MapView) v.findViewById(R.id.location_map);
+        mGoogleMap = mMapView.getMap();
+        mGoogleMap.setMyLocationEnabled(true);
         mMapView.onCreate(savedInstanceState);
 
         mMapView.onResume();// needed to get the map to display immediately
@@ -104,10 +106,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
         }
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, this);
-        mGoogleMap = mMapView.getMap();
-        mGoogleMap.setMyLocationEnabled(true);
         setupPubNub();
-
         return v;
     }
 
@@ -115,7 +114,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         try {
             //TODO Get all contacts phone numbers from sharedprefs and use as channel name
-            mPubnub.subscribe("9876", subscribeCallback);
+            mPubnub.subscribe("", subscribeCallback);
         } catch (PubnubException e) {
             Log.e("PUBNUB", e.toString());
         }
@@ -198,6 +197,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
             broadcastLocation(location);
         }
     }
+
     public class DrawRoutesRunnable implements Runnable {
         private JSONObject jsonMessage;
         public DrawRoutesRunnable(Object message) {
