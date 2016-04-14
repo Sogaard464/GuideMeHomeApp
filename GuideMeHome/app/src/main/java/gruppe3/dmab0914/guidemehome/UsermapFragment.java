@@ -117,7 +117,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         mPubnub.setUUID(mPhone);
         try {
             //TODO Get all contacts phone numbers from sharedprefs and use as channel name
-            mPubnub.subscribe("", subscribeCallback);
+            mPubnub.subscribe("9876", subscribeCallback);
         } catch (PubnubException e) {
             Log.e("PUBNUB", e.toString());
         }
