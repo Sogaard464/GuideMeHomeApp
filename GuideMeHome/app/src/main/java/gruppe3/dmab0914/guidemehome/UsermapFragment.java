@@ -43,8 +43,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private GoogleMap mGoogleMap;
     private Pubnub mPubnub;
     private String mMyChannel;
+    private String mPhone;
     private SharedPreferences mPrefs;
-
     private PolylineOptions mPolylineOptions;
 
 
@@ -72,21 +72,23 @@ public class UsermapFragment extends Fragment implements LocationListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        setRetainInstance(true);
         // inflate and return the layout
         View v = inflater.inflate(R.layout.fragment_map, container,
                 false);
         //Get sharedpreferences in private mode (0)
         mPrefs = getContext().getSharedPreferences("user",0);
-        Gson gson = new Gson();
-        String json = mPrefs.getString("phone", "");
-        mMyChannel = json;
+        mPhone = mPrefs.getString("phone", "");
+        mMyChannel = mPhone;
         mMapView = (MapView) v.findViewById(R.id.location_map);
+        mMapView.onCreate(savedInstanceState);
+        mMapView.onResume();
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         mGoogleMap = mMapView.getMap();
         mGoogleMap.setMyLocationEnabled(true);
-        mMapView.onCreate(savedInstanceState);
-
-        mMapView.onResume();// needed to get the map to display immediately
         mPolylineOptions = new PolylineOptions();
         mPolylineOptions.color(Color.BLUE).width(10);
         try {
@@ -112,6 +114,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
+        mPubnub.setUUID(mPhone);
         try {
             //TODO Get all contacts phone numbers from sharedprefs and use as channel name
             mPubnub.subscribe("", subscribeCallback);
