@@ -214,16 +214,23 @@ public class LoginActivity extends AppCompatActivity {
                 wr.write(urlParameters.getBytes());
                 wr.flush();
                 wr.close();
-                // Get Response
-                code = connection.getResponseCode();
-                if(code == 400){
-                    return String.valueOf(code);
-                }
-                else if(code == 404){
-                    return String.valueOf(code);
-                }
-                else if(code == 500){
-                    return String.valueOf(code);
+                int retries = 0;
+               while(code == 0 && retries <= 10){
+                    try {
+                        // Get Response
+                        code = connection.getResponseCode();
+                        if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
+                            return String.valueOf(code);
+                        }
+                    }
+                    catch(SocketTimeoutException e){
+                        retries++;
+                        System.out.println("Socket Timeout");
+                    }
                 }
                 InputStream is = connection.getInputStream();
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is));
