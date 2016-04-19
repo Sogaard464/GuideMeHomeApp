@@ -85,8 +85,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
         // inflate and return the layout
         View v = inflater.inflate(R.layout.fragment_map, container,
                 false);
-        String a = getTag();
-
         //Get sharedpreferences in private mode (0)
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
