@@ -38,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
+    public ViewPager getViewPager() {
+        return viewPager;
+    }
+
     @Override
     public void onBackPressed() {
         // do nothing.
@@ -87,8 +91,6 @@ public class MainActivity extends AppCompatActivity {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new ContactsFragment(), "Contacts");
         adapter.addFragment(new UsermapFragment(), "Map");
-        //adapter.addFragment(new TrackedPersonsFragment(), "Persons");
-
         viewPager.setAdapter(adapter);
     }
 

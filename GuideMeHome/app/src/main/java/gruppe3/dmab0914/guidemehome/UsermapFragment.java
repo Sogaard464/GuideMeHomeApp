@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -20,7 +21,6 @@ import com.google.android.gms.maps.MapsInitializer;
 
 import android.location.LocationListener;
 
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -30,9 +30,20 @@ import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A fragment that launches other parts of the demo application.
@@ -46,6 +57,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private String mPhone;
     private SharedPreferences mPrefs;
     private PolylineOptions mPolylineOptions;
+    private String channelGroup = "contacts";
 
 
     Callback publishCallback = new Callback() {
@@ -62,8 +74,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     Callback subscribeCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object message) {
-           // Thread t = new Thread(new DrawRoutesRunnable(message));
-           // t.start();
             getActivity().runOnUiThread(new DrawRoutesRunnable(message));
 
         }
@@ -75,6 +85,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
         // inflate and return the layout
         View v = inflater.inflate(R.layout.fragment_map, container,
                 false);
+        String a = getTag();
+
         //Get sharedpreferences in private mode (0)
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
@@ -115,12 +127,20 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone);
+        //Add all contacts to group
+        mPubnub.channelGroupAddChannel(channelGroup,"9876",subscribeCallback);
         try {
-            //TODO Get all contacts phone numbers from sharedprefs and use as channel name
-            mPubnub.subscribe("9876", subscribeCallback);
+            mPubnub.subscribe(mMyChannel+"-private",subscribeCallback);
+            mPubnub.channelGroupSubscribe(channelGroup,subscribeCallback);
         } catch (PubnubException e) {
-            Log.e("PUBNUB", e.toString());
+            e.printStackTrace();
         }
+    }
+    public Pubnub getPubnub(){
+        if (mPubnub == null){
+            setupPubNub();
+        }
+        return mPubnub;
     }
     private void updatePolyline(LatLng mLatLng) {
         mGoogleMap.clear();
@@ -160,11 +180,19 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-      //  Thread t = new Thread(new LocationChangeRunnable(location));
-        //t.start();
-        //new LocationChangeRunnable(location).run();
         getActivity().runOnUiThread(new LocationChangeRunnable(location));
-        //broadcastLocation(location);
+        String locationString = location.getLatitude() + ":" + location.getLongitude();
+        String token = mPrefs.getString("token", "");
+        RequestModel rm = new RequestModel(token,locationString);
+        LocationPostTask postTaskObject = new LocationPostTask();
+        String code = "";
+        try {
+            code = postTaskObject.execute(rm).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
     }
     private void broadcastLocation(Location location) {
         JSONObject message = new JSONObject();
@@ -218,5 +246,90 @@ public class UsermapFragment extends Fragment implements LocationListener {
                 Log.e("PUBNUB", e.toString());
             }
         }
+    }
+
+    private class LocationPostTask extends AsyncTask<RequestModel, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(RequestModel... params) {
+            String requestMethod;
+            String urlString;
+            requestMethod = "POST";
+            urlString = "http://guidemehome.azurewebsites.net/updatelocation";
+            int code = 0;
+
+            Gson gson = new Gson();
+
+            String urlParameters = gson.toJson(params[0]);
+
+            int timeout = 5000;
+            URL url;
+            HttpURLConnection connection = null;
+            try {
+                // Create connection
+
+                url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(requestMethod);
+                connection.setRequestProperty("Content-Type",
+                        "application/json;charset=utf-8");
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(timeout);
+                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
+
+                connection.setReadTimeout(timeout);
+                connection.connect();
+                // Send request
+                OutputStream wr = new BufferedOutputStream(
+                        connection.getOutputStream());
+                wr.write(urlParameters.getBytes());
+                wr.flush();
+                wr.close();
+                int retries = 0;
+                while(code == 0 && retries <= 10){
+                    try {
+                        // Get Response
+                        code = connection.getResponseCode();
+                        if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
+                            return String.valueOf(code);
+                        }
+                    }
+                    catch(SocketTimeoutException e){
+                        retries++;
+                        System.out.println("Socket Timeout");
+                    }
+                }
+            } catch (SocketTimeoutException ex) {
+                ex.printStackTrace();
+
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException ex) {
+
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return String.valueOf(code);
+        }
+
+
     }
 }
