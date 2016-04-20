@@ -55,9 +55,12 @@ public class ContactsFragment extends Fragment {
             JSONObject jsonMessage;
             jsonMessage = (JSONObject) message;
             try {
-                if(jsonMessage.getString("command").equals("add")){
-                   // showDialog(jsonMessage);
+                if (jsonMessage.getString("command").equals("add")) {
+                    // showDialog(jsonMessage);
                     getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                } else if (jsonMessage.getString("command").equals("accepted")) {
+                    getActivity().runOnUiThread(new AcceptedRunable(jsonMessage));
+
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -81,6 +84,10 @@ public class ContactsFragment extends Fragment {
                 try {
                     if (jsonMessage.getString("command").equals("add")) {
                         getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                        // prefsEditor.remove("lasttime");
+                        //prefsEditor.putString("lasttime", jsonMessage.getString("timetoken"));
+                        //prefsEditor.commit();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -88,6 +95,7 @@ public class ContactsFragment extends Fragment {
             }
         }
     };
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -95,16 +103,16 @@ public class ContactsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_contacts, container,
                 false);
         //Get sharedpreferences in private mode (0)
-        mPrefs = getContext().getSharedPreferences("user",0);
+        mPrefs = getContext().getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
-        mName = mPrefs.getString("username","");
-        mMyChannel = mPhone+"-private";
+        mName = mPrefs.getString("username", "");
+        mMyChannel = mPhone + "-private";
         setupPubNub();
         Button addContactButton = (Button) v.findViewById(R.id.addButton);
         addContactButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-              showAddContactDialog();
+                showAddContactDialog();
             }
         });
         //
@@ -113,10 +121,10 @@ public class ContactsFragment extends Fragment {
 
         //TODO Make menu to show when clicking on a contact
         ItemClickSupport.addTo(rvContacts).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
-                @Override
+            @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                    Toast.makeText(getActivity().getBaseContext(),"Trykket",
-                            Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity().getBaseContext(), "Trykket",
+                        Toast.LENGTH_SHORT).show();
             }
         });
         // Initialize contacts
@@ -148,7 +156,7 @@ public class ContactsFragment extends Fragment {
             public void onClick(View v) {
                 String phone = phoneNumber.getText().toString();
                 JSONObject message = new JSONObject();
-                if(phoneNumber.getText().length() != 0)
+                if (phoneNumber.getText().length() != 0)
                     try {
                         message.put("command", "add");
                         message.put("phone", mPhone);
@@ -156,7 +164,7 @@ public class ContactsFragment extends Fragment {
                     } catch (JSONException e) {
                         Log.e("PUBNUB", e.toString());
                     }
-                mPubnub.publish(phone+"-private", message, publishCallback);
+                mPubnub.publish(phone + "-private", message, publishCallback);
                 //TODO Handle this message on the would be contact
                 dialog.dismiss();
             }
@@ -169,19 +177,23 @@ public class ContactsFragment extends Fragment {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone);
         try {
-            mPubnub.subscribe(mMyChannel,subscribeCallback);
+            mPubnub.subscribe(mMyChannel, subscribeCallback);
         } catch (PubnubException e) {
             e.printStackTrace();
         }
-        mPubnub.history(mMyChannel,true,100,historyCallback);
-
+//        Long start = mPrefs.getLong("lasttime",0);
+        //      mPubnub.history(mMyChannel,start,100,historyCallback);
+        mPubnub.history(mMyChannel, true, 100, historyCallback);
 
     }
+
     public class ShowAcceptDialogRunnable implements Runnable {
         private JSONObject jsonMessage;
+
         public ShowAcceptDialogRunnable(Object message) {
             this.jsonMessage = (JSONObject) message;
         }
+
         public void run() {
             final Dialog dialog = new Dialog(getContext());
             dialog.setCanceledOnTouchOutside(false);
@@ -201,10 +213,19 @@ public class ContactsFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     try {
-                        Contact c = new Contact(jsonMessage.getString("name"),jsonMessage.getString("phone"));
+                        Contact c = new Contact(jsonMessage.getString("name"), jsonMessage.getString("phone"));
                         contacts.add(c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
+                        JSONObject message = new JSONObject();
+                        try {
+                            message.put("command", "accepted");
+                            message.put("phone", mPhone);
+                            message.put("name", mName);
+                        } catch (JSONException e) {
+                            Log.e("PUBNUB", e.toString());
+                        }
+                        mPubnub.publish(jsonMessage.getString("phone") + "-private", message, publishCallback);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -215,7 +236,28 @@ public class ContactsFragment extends Fragment {
             });
 
             dialog.show();
-            }
         }
     }
+
+    private class AcceptedRunable implements Runnable {
+        private JSONObject jsonMessage;
+
+        public AcceptedRunable(Object message) {
+            this.jsonMessage = (JSONObject) message;
+        }
+
+        public void run() {
+            Contact c = null;
+            try {
+                c = new Contact(jsonMessage.getString("name"), jsonMessage.getString("phone"));
+                contacts.add(c);
+                // Notify the adapter that an item was inserted at position 0
+                adapter.notifyItemInserted(0);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+}
 
