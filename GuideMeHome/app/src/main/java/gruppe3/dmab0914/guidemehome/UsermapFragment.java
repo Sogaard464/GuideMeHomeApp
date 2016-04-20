@@ -201,7 +201,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         } catch (JSONException e) {
             Log.e("PUBNUB", e.toString());
         }
-        mPubnub.publish(mMyChannel, message, publishCallback);
+        mPubnub.publish(mMyChannel, message, false,publishCallback);
     }
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {

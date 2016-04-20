@@ -12,9 +12,11 @@ public class Contact {
     private boolean mUserVisible;
     private boolean mOnlineStatus;
 
-    public Contact(String name, boolean onlineStatus) {
+    public Contact(String name, String phone) {
         mName = name;
-        mOnlineStatus = onlineStatus;
+        mPhone = phone;
+        mContactVisible = true;
+        mUserVisible = true;
     }
 
     public String getName() {
@@ -62,14 +64,4 @@ public class Contact {
     }
 
     private static int lastContactId = 0;
-
-    public static ArrayList<Contact> createContactsList(int numContacts) {
-        ArrayList<Contact> contacts = new ArrayList<Contact>();
-
-        for (int i = 1; i <= numContacts; i++) {
-            contacts.add(new Contact("Person " + ++lastContactId, i <= numContacts / 2));
-        }
-
-        return contacts;
-    }
 }

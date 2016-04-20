@@ -21,6 +21,7 @@ import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,6 +36,7 @@ public class ContactsFragment extends Fragment {
     private String mPhone;
     private String mName;
     private SharedPreferences mPrefs;
+    private ContactsAdapter adapter;
 
     Callback publishCallback = new Callback() {
         @Override
@@ -55,40 +57,37 @@ public class ContactsFragment extends Fragment {
             try {
                 if(jsonMessage.getString("command").equals("add")){
                    // showDialog(jsonMessage);
-                   //new ShowDialogRunnable(jsonMessage);
+                    getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     };
-
-    private void showDialog(JSONObject jsonMessage) {
-        // custom dialog
-        final Dialog dialog = new Dialog(getContext());
-        dialog.setContentView(R.layout.dialog_allowcontact);
-        dialog.setTitle("Add Contact...");
-        // set the custom dialog components - text, image and button
-        final TextView textview = (TextView) dialog.findViewById(R.id.textView);
-        try {
-            textview.setText(jsonMessage.getString("phone") + " wants to add you as friend!");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        Button allowButton = (Button) dialog.findViewById(R.id.dialogButtonAllow);
-        // if button is clicked, close the custom dialog
-        allowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                dialog.dismiss();
+    Callback historyCallback = new Callback() {
+        @Override
+        public void successCallback(String channel, Object message) {
+            JSONObject jsonMessage;
+            jsonMessage = (JSONObject) message;
+            try {
+                JSONObject js = jsonMessage.getJSONObject("0");
+                if (js.getString("command").equals("add")) {
+                    getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        });
-
-        dialog.show();
-    }
-
-
+            for (int i = 0; i < jsonMessage.length() - 2; i++) {
+                try {
+                    if (jsonMessage.getString("command").equals("add")) {
+                        getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -98,45 +97,14 @@ public class ContactsFragment extends Fragment {
         //Get sharedpreferences in private mode (0)
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
-        mName = mPrefs.getString("name","");
+        mName = mPrefs.getString("username","");
         mMyChannel = mPhone+"-private";
         setupPubNub();
         Button addContactButton = (Button) v.findViewById(R.id.addButton);
         addContactButton.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View arg0) {
-                // custom dialog
-                final Dialog dialog = new Dialog(getContext());
-                dialog.setContentView(R.layout.dialog_addcontact);
-                dialog.setTitle("Add Contact...");
-                String a = getTag();
-
-                // set the custom dialog components - text, image and button
-                final EditText phoneNumber = (EditText) dialog.findViewById(R.id.phoneText);
-
-                Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-                // if button is clicked, close the custom dialog
-                dialogButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String phone = phoneNumber.getText().toString();
-                        JSONObject message = new JSONObject();
-                        if(phoneNumber.getText().length() != 0)
-                        try {
-                            message.put("command", "add");
-                            message.put("phone", mPhone);
-                            message.put("name", mName);
-                        } catch (JSONException e) {
-                            Log.e("PUBNUB", e.toString());
-                        }
-                        mPubnub.publish(mMyChannel, message, publishCallback);
-                       //TODO Handle this message on the would be contact
-                        dialog.dismiss();
-                    }
-                });
-
-                dialog.show();
+              showAddContactDialog();
             }
         });
         //
@@ -152,9 +120,9 @@ public class ContactsFragment extends Fragment {
             }
         });
         // Initialize contacts
-        contacts = Contact.createContactsList(20);
+        contacts = new ArrayList<Contact>();
         // Create adapter passing in the sample user data
-        ContactsAdapter adapter = new ContactsAdapter(contacts);
+        adapter = new ContactsAdapter(contacts);
         // Attach the adapter to the recyclerview to populate items
         rvContacts.setAdapter(adapter);
         // Set layout manager to position the items
@@ -162,6 +130,41 @@ public class ContactsFragment extends Fragment {
         // That's all!
         return v;
     }
+
+    private void showAddContactDialog() {
+        // custom dialog
+        final Dialog dialog = new Dialog(getContext());
+        dialog.setContentView(R.layout.dialog_addcontact);
+        dialog.setTitle("Add Contact...");
+        String a = getTag();
+
+        // set the custom dialog components - text, image and button
+        final EditText phoneNumber = (EditText) dialog.findViewById(R.id.phoneText);
+
+        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        // if button is clicked, close the custom dialog
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String phone = phoneNumber.getText().toString();
+                JSONObject message = new JSONObject();
+                if(phoneNumber.getText().length() != 0)
+                    try {
+                        message.put("command", "add");
+                        message.put("phone", mPhone);
+                        message.put("name", mName);
+                    } catch (JSONException e) {
+                        Log.e("PUBNUB", e.toString());
+                    }
+                mPubnub.publish(phone+"-private", message, publishCallback);
+                //TODO Handle this message on the would be contact
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone);
@@ -170,21 +173,25 @@ public class ContactsFragment extends Fragment {
         } catch (PubnubException e) {
             e.printStackTrace();
         }
+        mPubnub.history(mMyChannel,true,100,historyCallback);
+
 
     }
-    public class ShowDialogRunnable implements Runnable {
+    public class ShowAcceptDialogRunnable implements Runnable {
         private JSONObject jsonMessage;
-        public ShowDialogRunnable(Object message) {
+        public ShowAcceptDialogRunnable(Object message) {
             this.jsonMessage = (JSONObject) message;
         }
         public void run() {
             final Dialog dialog = new Dialog(getContext());
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
             dialog.setContentView(R.layout.dialog_allowcontact);
             dialog.setTitle("Add Contact...");
             // set the custom dialog components - text, image and button
             final TextView textview = (TextView) dialog.findViewById(R.id.textView);
             try {
-                textview.setText(jsonMessage.getString("phone") + " wants to add you as friend!");
+                textview.setText(jsonMessage.getString("name") + " wants to add you as friend!");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -193,7 +200,16 @@ public class ContactsFragment extends Fragment {
             allowButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    try {
+                        Contact c = new Contact(jsonMessage.getString("name"),jsonMessage.getString("phone"));
+                        contacts.add(c);
+                        // Notify the adapter that an item was inserted at position 0
+                        adapter.notifyItemInserted(0);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
+                    //TODO call to DB
                     dialog.dismiss();
                 }
             });

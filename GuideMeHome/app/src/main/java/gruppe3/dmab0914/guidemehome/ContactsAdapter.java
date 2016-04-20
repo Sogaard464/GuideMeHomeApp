@@ -60,18 +60,8 @@ public class ContactsAdapter extends
 
         // Set item views based on the data model
         TextView textView = viewHolder.nameTextView;
-        textView.setText(contact.getName());
+        textView.setText(contact.getName() + contact.getmPhone());
 
-        Button button = viewHolder.messageButton;
-
-        if (contact.isOnline()) {
-            button.setText("Message");
-            button.setEnabled(true);
-        }
-        else {
-            button.setText("Offline");
-            button.setEnabled(false);
-        }
 
     }
 
