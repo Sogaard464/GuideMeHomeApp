@@ -217,6 +217,11 @@ public class UsermapFragment extends Fragment implements LocationListener {
     public void onProviderDisabled(String provider) {
 
     }
+
+    public void subscribe(String phone) {
+        mPubnub.channelGroupAddChannel(channelGroup,phone,subscribeCallback);
+    }
+
     public class LocationChangeRunnable implements Runnable {
         private Location location;
         public LocationChangeRunnable(Location location) {
@@ -309,7 +314,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
                 }
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();
-
             } catch (MalformedURLException ex) {
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
             } catch (UnknownHostException e) {

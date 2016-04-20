@@ -217,6 +217,8 @@ public class ContactsFragment extends Fragment {
                         contacts.add(c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
+                        UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                        umf.subscribe(jsonMessage.getString("phone"));
                         JSONObject message = new JSONObject();
                         try {
                             message.put("command", "accepted");
@@ -253,6 +255,8 @@ public class ContactsFragment extends Fragment {
                 contacts.add(c);
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
+                UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                umf.subscribe(jsonMessage.getString("phone"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
