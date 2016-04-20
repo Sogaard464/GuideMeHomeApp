@@ -128,6 +128,11 @@ public class UsermapFragment extends Fragment implements LocationListener {
         //Add all contacts to group
         mPubnub.channelGroupAddChannel(channelGroup,"9876",subscribeCallback);
         try {
+            mPubnub.subscribe(mPhone,subscribeCallback);
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
+        try {
             mPubnub.subscribe(mMyChannel+"-private",subscribeCallback);
             mPubnub.channelGroupSubscribe(channelGroup,subscribeCallback);
         } catch (PubnubException e) {
@@ -219,6 +224,11 @@ public class UsermapFragment extends Fragment implements LocationListener {
     }
 
     public void subscribe(String phone) {
+        try {
+            mPubnub.subscribe(phone,subscribeCallback);
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
         mPubnub.channelGroupAddChannel(channelGroup,phone,subscribeCallback);
     }
 
