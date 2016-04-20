@@ -49,7 +49,7 @@ public class ContactsFragment extends Fragment {
             Log.e("PUBNUB", error.toString());
         }
     };
-    Callback subscribeCallback = new Callback() {
+    Callback receivedCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object message) {
             JSONObject jsonMessage;
@@ -177,13 +177,13 @@ public class ContactsFragment extends Fragment {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone);
         try {
-            mPubnub.subscribe(mMyChannel, subscribeCallback);
+            mPubnub.subscribe(mMyChannel, receivedCallback);
         } catch (PubnubException e) {
             e.printStackTrace();
         }
 //        Long start = mPrefs.getLong("lasttime",0);
         //      mPubnub.history(mMyChannel,start,100,historyCallback);
-        mPubnub.history(mMyChannel, true, 100, historyCallback);
+     //   mPubnub.history(mMyChannel, true, 100, historyCallback);
 
     }
 

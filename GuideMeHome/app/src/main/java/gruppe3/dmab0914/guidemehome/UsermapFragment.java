@@ -59,7 +59,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private PolylineOptions mPolylineOptions;
     private String channelGroup = "contacts";
 
-
     Callback publishCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object response) {
@@ -71,13 +70,25 @@ public class UsermapFragment extends Fragment implements LocationListener {
             Log.e("PUBNUB", error.toString());
         }
     };
-    Callback subscribeCallback = new Callback() {
+    Callback receivedCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object message) {
-            getActivity().runOnUiThread(new DrawRoutesRunnable(message));
-
+            JSONObject jsonMessage = (JSONObject) message;
+            double mLat = 0;
+            double mLng = 0;
+            try {
+                mLat = jsonMessage.getDouble("lat");
+                mLng = jsonMessage.getDouble("lng");
+                LatLng mLatLng = new LatLng(mLat, mLng);
+                getActivity().runOnUiThread(new DrawRoutesRunnable(mLatLng));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     };
+
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -117,24 +128,19 @@ public class UsermapFragment extends Fragment implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
 
         }
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, this);
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
         setupPubNub();
         return v;
     }
 
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
-        mPubnub.setUUID(mPhone);
+        mPubnub.setUUID(mPhone+"map");
         //Add all contacts to group
-        mPubnub.channelGroupAddChannel(channelGroup,"9876",subscribeCallback);
+      //  mPubnub.channelGroupAddChannel(channelGroup,mMyChannel,receivedCallback);
         try {
-            mPubnub.subscribe(mPhone,subscribeCallback);
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
-        try {
-            mPubnub.subscribe(mMyChannel+"-private",subscribeCallback);
-            mPubnub.channelGroupSubscribe(channelGroup,subscribeCallback);
+            mPubnub.subscribe("9999",receivedCallback);
+        //    mPubnub.channelGroupSubscribe(channelGroup,receivedCallback);
         } catch (PubnubException e) {
             e.printStackTrace();
         }
@@ -184,7 +190,11 @@ public class UsermapFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         getActivity().runOnUiThread(new LocationChangeRunnable(location));
-        String locationString = location.getLatitude() + ":" + location.getLongitude();
+        Double mLat = location.getLatitude();
+        Double mLng = location.getLongitude();
+        LatLng mLatLng = new LatLng(mLat, mLng);
+        getActivity().runOnUiThread(new DrawRoutesRunnable(mLatLng));
+        /*String locationString = location.getLatitude() + ":" + location.getLongitude();
         String token = mPrefs.getString("token", "");
         RequestModel rm = new RequestModel(token,locationString);
         LocationPostTask postTaskObject = new LocationPostTask();
@@ -195,7 +205,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
-        }
+        }*/
     }
     private void broadcastLocation(Location location) {
         JSONObject message = new JSONObject();
@@ -206,7 +216,9 @@ public class UsermapFragment extends Fragment implements LocationListener {
         } catch (JSONException e) {
             Log.e("PUBNUB", e.toString());
         }
-        mPubnub.publish(mMyChannel, message, false,publishCallback);
+        mPubnub.publish(mMyChannel, message,publishCallback);
+        mPubnub.publish("9999", message,publishCallback);
+
     }
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -225,11 +237,11 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     public void subscribe(String phone) {
         try {
-            mPubnub.subscribe(phone,subscribeCallback);
+            mPubnub.subscribe(phone,receivedCallback);
         } catch (PubnubException e) {
             e.printStackTrace();
         }
-        mPubnub.channelGroupAddChannel(channelGroup,phone,subscribeCallback);
+        mPubnub.channelGroupAddChannel(channelGroup,phone,receivedCallback);
     }
 
     public class LocationChangeRunnable implements Runnable {
@@ -243,21 +255,15 @@ public class UsermapFragment extends Fragment implements LocationListener {
     }
 
     public class DrawRoutesRunnable implements Runnable {
-        private JSONObject jsonMessage;
-        public DrawRoutesRunnable(Object message) {
-            this.jsonMessage = (JSONObject) message;
+        private LatLng loc;
+        public DrawRoutesRunnable(LatLng location) {
+            loc = location;
         }
         public void run() {
-            try {
-                double mLat = jsonMessage.getDouble("lat");
-                double mLng = jsonMessage.getDouble("lng");
-                LatLng mLatLng = new LatLng(mLat, mLng);
-                updatePolyline(mLatLng);
-                updateCamera(mLatLng);
-                updateMarker(mLatLng);
-            } catch (JSONException e) {
-                Log.e("PUBNUB", e.toString());
-            }
+
+            updatePolyline(loc);
+            updateCamera(loc);
+            updateMarker(loc);
         }
     }
 
