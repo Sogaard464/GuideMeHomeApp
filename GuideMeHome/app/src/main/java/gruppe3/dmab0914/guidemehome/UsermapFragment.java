@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,15 +15,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
-
-import android.location.LocationListener;
-
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import com.pubnub.api.Callback;
@@ -41,7 +40,8 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.concurrent.ExecutionException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,9 +55,10 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private Pubnub mPubnub;
     private String mMyChannel;
     private String mPhone;
+    private String mName;
     private SharedPreferences mPrefs;
-    private PolylineOptions mPolylineOptions;
-    private String channelGroup = "contacts";
+    private Map<String,PolylineOptions> polylines = new HashMap<>();;
+    private Map<String,Marker> markers = new HashMap<>();;
 
     Callback publishCallback = new Callback() {
         @Override
@@ -76,18 +77,21 @@ public class UsermapFragment extends Fragment implements LocationListener {
             JSONObject jsonMessage = (JSONObject) message;
             double mLat = 0;
             double mLng = 0;
+            String phone = "";
+            String name = "";
+
             try {
+                phone = jsonMessage.getString("phone");
+                name = jsonMessage.getString("name");
                 mLat = jsonMessage.getDouble("lat");
                 mLng = jsonMessage.getDouble("lng");
                 LatLng mLatLng = new LatLng(mLat, mLng);
-                getActivity().runOnUiThread(new DrawRoutesRunnable(mLatLng));
+                getActivity().runOnUiThread(new DrawRoutesRunnable(mLatLng,phone,name));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     };
-
-
 
 
     @Override
@@ -99,6 +103,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         //Get sharedpreferences in private mode (0)
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
+        mName = mPrefs.getString("name", "");
         mMyChannel = mPhone;
         mMapView = (MapView) v.findViewById(R.id.location_map);
         mMapView.onCreate(savedInstanceState);
@@ -110,8 +115,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
         }
         mGoogleMap = mMapView.getMap();
         mGoogleMap.setMyLocationEnabled(true);
-        mPolylineOptions = new PolylineOptions();
-        mPolylineOptions.color(Color.BLUE).width(10);
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
         } catch (Exception e) {
@@ -137,31 +140,33 @@ public class UsermapFragment extends Fragment implements LocationListener {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone+"map");
         //Add all contacts to group
-      //  mPubnub.channelGroupAddChannel(channelGroup,mMyChannel,receivedCallback);
         try {
-            mPubnub.subscribe("9999",receivedCallback);
-        //    mPubnub.channelGroupSubscribe(channelGroup,receivedCallback);
+           mPubnub.subscribe("9999",receivedCallback);
         } catch (PubnubException e) {
             e.printStackTrace();
         }
     }
-    public Pubnub getPubnub(){
-        if (mPubnub == null){
-            setupPubNub();
+
+    private void updatePolyline(LatLng loc, String phone) {
+        PolylineOptions po = polylines.get(phone);
+        polylines.remove(phone);
+        if (po == null){
+            po = new PolylineOptions();
+            po.color(Color.BLUE).width(10);
         }
-        return mPubnub;
-    }
-    private void updatePolyline(LatLng mLatLng) {
-        mGoogleMap.clear();
-        mGoogleMap.addPolyline(mPolylineOptions.add(mLatLng));
-    }
+        po.add(loc);
+        Polyline pol =  mGoogleMap.addPolyline(po);
+        polylines.put(phone,po);
 
-    private void updateMarker(LatLng mLatLng) {
-        mGoogleMap.addMarker(new MarkerOptions().position(mLatLng));
     }
-
-    private void updateCamera(LatLng mLatLng) {
-        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, 20));
+    private void updateMarker(LatLng mLatLng, String name,String phone) {
+        Marker m = markers.get(phone);
+        if(m != null){
+            m.remove();
+        }
+        markers.remove(phone);
+        m = mGoogleMap.addMarker(new MarkerOptions().position(mLatLng).title(name).snippet(name));;
+        markers.put(phone,m);
     }
     @Override
     public void onResume() {
@@ -190,10 +195,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         getActivity().runOnUiThread(new LocationChangeRunnable(location));
-        Double mLat = location.getLatitude();
-        Double mLng = location.getLongitude();
-        LatLng mLatLng = new LatLng(mLat, mLng);
-        getActivity().runOnUiThread(new DrawRoutesRunnable(mLatLng));
         /*String locationString = location.getLatitude() + ":" + location.getLongitude();
         String token = mPrefs.getString("token", "");
         RequestModel rm = new RequestModel(token,locationString);
@@ -213,6 +214,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
             message.put("lat", location.getLatitude());
             message.put("lng", location.getLongitude());
             message.put("alt", location.getAltitude());
+            message.put("phone",mPhone);
+            message.put("name",mName);
         } catch (JSONException e) {
             Log.e("PUBNUB", e.toString());
         }
@@ -236,12 +239,11 @@ public class UsermapFragment extends Fragment implements LocationListener {
     }
 
     public void subscribe(String phone) {
-        try {
+       try {
             mPubnub.subscribe(phone,receivedCallback);
-        } catch (PubnubException e) {
+       } catch (PubnubException e) {
             e.printStackTrace();
         }
-        mPubnub.channelGroupAddChannel(channelGroup,phone,receivedCallback);
     }
 
     public class LocationChangeRunnable implements Runnable {
@@ -256,14 +258,16 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     public class DrawRoutesRunnable implements Runnable {
         private LatLng loc;
-        public DrawRoutesRunnable(LatLng location) {
+        private String phone;
+        private String name;
+        public DrawRoutesRunnable(LatLng location,String phone, String name) {
             loc = location;
+            this.phone = phone;
+            this.name = name;
         }
         public void run() {
-
-            updatePolyline(loc);
-            updateCamera(loc);
-            updateMarker(loc);
+            updatePolyline(loc,phone);
+            updateMarker(loc,name,phone);
         }
     }
 

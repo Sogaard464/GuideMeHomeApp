@@ -215,7 +215,7 @@ public class LoginActivity extends AppCompatActivity {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-               while(code == 0 && retries <= 10){
+               while(code == 0 && retries <= 50){
                     try {
                         // Get Response
                         code = connection.getResponseCode();
