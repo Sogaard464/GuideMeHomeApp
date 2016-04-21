@@ -14,10 +14,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -103,7 +105,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         //Get sharedpreferences in private mode (0)
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
-        mName = mPrefs.getString("name", "");
+        mName = mPrefs.getString("username", "");
         mMyChannel = mPhone;
         mMapView = (MapView) v.findViewById(R.id.location_map);
         mMapView.onCreate(savedInstanceState);
@@ -120,6 +122,12 @@ public class UsermapFragment extends Fragment implements LocationListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            public boolean onMarkerClick(Marker arg0) {
+                arg0.showInfoWindow();
+                return true;
+            }
+        });
         LocationManager lm = (LocationManager) getActivity().getSystemService(this.getContext().LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -131,7 +139,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
 
         }
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10, this);
         setupPubNub();
         return v;
     }
@@ -171,7 +179,10 @@ public class UsermapFragment extends Fragment implements LocationListener {
             m.remove();
         }
         markers.remove(phone);
-        m = mGoogleMap.addMarker(new MarkerOptions().position(mLatLng).title(name).snippet(name));
+        m = mGoogleMap.addMarker(new MarkerOptions().position(mLatLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
+                .title(name));
+        m.showInfoWindow();
         markers.put(phone,m);
     }
     @Override
