@@ -1,5 +1,7 @@
 package gruppe3.dmab0914.guidemehome;
 
+import java.util.ArrayList;
+
 /**
  * Created by Seagaard on 04-04-2016.
  */
@@ -13,11 +15,22 @@ public class User {
     private String mToken;
 
 
+
+    private ArrayList<Contact> contacts = new ArrayList<>();
+
+
     public User(String name, String email){
         mName = name;
         mEmail = email;
     }
 
+    public ArrayList<Contact> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(ArrayList<Contact> contacts) {
+        this.contacts = contacts;
+    }
     public String getName() {
         return mName;
     }

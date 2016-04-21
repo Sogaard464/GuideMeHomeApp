@@ -2,6 +2,7 @@ package gruppe3.dmab0914.guidemehome;
 
 import android.app.Dialog;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,6 +16,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
@@ -23,12 +25,23 @@ import com.pubnub.api.PubnubException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class ContactsFragment extends Fragment {
 
-    ArrayList<Contact> contacts;
+    ArrayList<Contact> contacts = new ArrayList<Contact>();;
     private Pubnub mPubnub;
     private String mMyChannel;
     private String mPhone;
@@ -126,7 +139,10 @@ public class ContactsFragment extends Fragment {
             }
         });
         // Initialize contacts
-        contacts = new ArrayList<Contact>();
+
+
+       // contacts = new ArrayList<Contact>();
+        
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
         // Attach the adapter to the recyclerview to populate items
@@ -137,6 +153,9 @@ public class ContactsFragment extends Fragment {
         return v;
     }
 
+    public void setContacts(ArrayList<Contact> contacts) {
+        this.contacts = contacts;
+    }
     private void showAddContactDialog() {
         // custom dialog
         final Dialog dialog = new Dialog(getContext());
@@ -154,29 +173,38 @@ public class ContactsFragment extends Fragment {
             public void onClick(View v) {
                 String phone = phoneNumber.getText().toString();
                 boolean found = false;
-                for(int i = 0; i <= contacts.size() && !found && contacts.size() != 0;i++){
+                if(contacts.size() != 0) {
+                    for (int i = 0; i < contacts.size() && !found; i++) {
                         if (contacts.get(i).getmPhone().equals(phone)) {
                             Toast.makeText(getActivity().getBaseContext(), "Already a contact",
                                     Toast.LENGTH_SHORT).show();
                             found = true;
+                        } else {
+                            sendAddMessage(phone);
                         }
-                    else{
-                        JSONObject message = new JSONObject();
-                        if (phoneNumber.getText().length() != 0)
-                            try {
-                                message.put("command", "add");
-                                message.put("phone", mPhone);
-                                message.put("name", mName);
-                            } catch (JSONException e) {
-                                Log.e("PUBNUB", e.toString());
-                            }
-                        mPubnub.publish(phone + "-private", message, publishCallback);
                     }
                 }
+                    else{
+                    sendAddMessage(phone);
+                    }
                 dialog.dismiss();
             }
+
         });
         dialog.show();
+    }
+
+    private void sendAddMessage(String phone) {
+        JSONObject message = new JSONObject();
+        if (phone.length() != 0)
+            try {
+                message.put("command", "add");
+                message.put("phone", mPhone);
+                message.put("name", mName);
+            } catch (JSONException e) {
+                Log.e("PUBNUB", e.toString());
+            }
+        mPubnub.publish(phone + "-private", message, publishCallback);
     }
 
     private void setupPubNub() {
@@ -263,11 +291,102 @@ public class ContactsFragment extends Fragment {
                 adapter.notifyItemInserted(0);
                 UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                 umf.subscribe(jsonMessage.getString("phone"));
+
+                String token = mPrefs.getString("token", "");
+                RequestModel rm = new RequestModel(token,mPhone+":"+jsonMessage.getString("phone"));
+                ContactPostTask postTaskObject = new ContactPostTask();
+                String code = "";
+                try {
+                    code = postTaskObject.execute(rm).get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
         }
+    }
+    private class ContactPostTask extends AsyncTask<RequestModel, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(RequestModel... params) {
+            String requestMethod;
+            String urlString;
+            requestMethod = "POST";
+            urlString = "http://guidemehome.azurewebsites.net/addcontactsrelation";
+            int code = 0;
+            Gson gson = new Gson();
+            String urlParameters = gson.toJson(params[0]);
+            int timeout = 5000;
+            URL url;
+            HttpURLConnection connection = null;
+            try {
+                // Create connection
+                url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(requestMethod);
+                connection.setRequestProperty("Content-Type",
+                        "application/json;charset=utf-8");
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(timeout);
+                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
+
+                connection.setReadTimeout(timeout);
+                connection.connect();
+                // Send request
+                OutputStream wr = new BufferedOutputStream(
+                        connection.getOutputStream());
+                wr.write(urlParameters.getBytes());
+                wr.flush();
+                wr.close();
+                int retries = 0;
+                while(code == 0 && retries <= 50){
+                    try {
+                        // Get Response
+                        code = connection.getResponseCode();
+                        if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
+                            return String.valueOf(code);
+                        }
+                    }
+                    catch(SocketTimeoutException e){
+                        retries++;
+                        System.out.println("Socket Timeout");
+                    }
+                }
+            } catch (SocketTimeoutException ex) {
+                ex.printStackTrace();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException ex) {
+
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return String.valueOf(code);
+        }
+
+
     }
 }
 

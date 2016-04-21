@@ -229,6 +229,8 @@ public class SignupActivity extends AppCompatActivity {
                 }
                 rd.close();
                 User u = gson.fromJson(response.toString(),User.class);
+                ContactsFragment cmf = (ContactsFragment)getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
+                cmf.setContacts(u.getContacts());
                 SharedPreferences mPrefs = getSharedPreferences("user",MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.clear();
