@@ -1,5 +1,6 @@
 package gruppe3.dmab0914.guidemehome;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -37,7 +38,11 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    public ArrayList<Contact> getContacts() {
+        return contacts;
+    }
 
+    private ArrayList<Contact> contacts = new ArrayList<>();
     public ViewPager getViewPager() {
         return viewPager;
     }
@@ -66,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
         }
-
     }
 
     private boolean isTokenValid(String token) {
@@ -144,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
         setupViewPager(viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -226,12 +229,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 rd.close();
                 User u = gson.fromJson(response.toString(), User.class);
+                contacts = u.getContacts();
+
                 SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.clear();
                 prefsEditor.putString("username", u.getName());
                 prefsEditor.putString("phone", u.getPhone());
                 prefsEditor.putString("token", u.getToken());
+                prefsEditor.putString("contacts",gson.toJson(u.getContacts()));
                 prefsEditor.commit();
 
             } catch (SocketTimeoutException ex) {

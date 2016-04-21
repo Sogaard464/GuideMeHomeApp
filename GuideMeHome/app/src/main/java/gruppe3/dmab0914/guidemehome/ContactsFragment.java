@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
@@ -67,7 +68,6 @@ public class ContactsFragment extends Fragment {
             jsonMessage = (JSONObject) message;
             try {
                 if (jsonMessage.getString("command").equals("add")) {
-                    // showDialog(jsonMessage);
                     getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                 } else if (jsonMessage.getString("command").equals("accepted")) {
                     getActivity().runOnUiThread(new AcceptedRunable(jsonMessage));
@@ -118,6 +118,7 @@ public class ContactsFragment extends Fragment {
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
         mMyChannel = mPhone + "-private";
+        Gson gson = new Gson();
         setupPubNub();
         Button addContactButton = (Button) v.findViewById(R.id.addButton);
         addContactButton.setOnClickListener(new View.OnClickListener() {
@@ -139,10 +140,8 @@ public class ContactsFragment extends Fragment {
             }
         });
         // Initialize contacts
+        contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
 
-
-       // contacts = new ArrayList<Contact>();
-        
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
         // Attach the adapter to the recyclerview to populate items
@@ -153,9 +152,6 @@ public class ContactsFragment extends Fragment {
         return v;
     }
 
-    public void setContacts(ArrayList<Contact> contacts) {
-        this.contacts = contacts;
-    }
     private void showAddContactDialog() {
         // custom dialog
         final Dialog dialog = new Dialog(getContext());

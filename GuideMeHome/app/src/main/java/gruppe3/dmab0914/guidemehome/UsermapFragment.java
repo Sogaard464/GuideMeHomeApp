@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
@@ -40,6 +41,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -137,7 +139,15 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone+"map");
-        //Add all contacts to group
+        Gson gson = new Gson();
+        ArrayList<Contact> contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
+        for (Contact c: contacts) {
+            try {
+                mPubnub.subscribe(c.getmPhone(),receivedCallback);
+            } catch (PubnubException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 

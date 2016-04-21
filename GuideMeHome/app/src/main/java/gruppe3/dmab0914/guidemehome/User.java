@@ -16,7 +16,7 @@ public class User {
 
 
 
-    private ArrayList<Contact> contacts = new ArrayList<>();
+    private ArrayList<Contact> mContacts = new ArrayList<>();
 
 
     public User(String name, String email){
@@ -25,11 +25,11 @@ public class User {
     }
 
     public ArrayList<Contact> getContacts() {
-        return contacts;
+        return mContacts;
     }
 
     public void setContacts(ArrayList<Contact> contacts) {
-        this.contacts = contacts;
+        this.mContacts = contacts;
     }
     public String getName() {
         return mName;
