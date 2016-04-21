@@ -15,13 +15,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -155,21 +153,29 @@ public class ContactsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String phone = phoneNumber.getText().toString();
-                JSONObject message = new JSONObject();
-                if (phoneNumber.getText().length() != 0)
-                    try {
-                        message.put("command", "add");
-                        message.put("phone", mPhone);
-                        message.put("name", mName);
-                    } catch (JSONException e) {
-                        Log.e("PUBNUB", e.toString());
+                boolean found = false;
+                for(int i = 0; i <= contacts.size() && !found && contacts.size() != 0;i++){
+                        if (contacts.get(i).getmPhone().equals(phone)) {
+                            Toast.makeText(getActivity().getBaseContext(), "Already a contact",
+                                    Toast.LENGTH_SHORT).show();
+                            found = true;
+                        }
+                    else{
+                        JSONObject message = new JSONObject();
+                        if (phoneNumber.getText().length() != 0)
+                            try {
+                                message.put("command", "add");
+                                message.put("phone", mPhone);
+                                message.put("name", mName);
+                            } catch (JSONException e) {
+                                Log.e("PUBNUB", e.toString());
+                            }
+                        mPubnub.publish(phone + "-private", message, publishCallback);
                     }
-                mPubnub.publish(phone + "-private", message, publishCallback);
-                //TODO Handle this message on the would be contact
+                }
                 dialog.dismiss();
             }
         });
-
         dialog.show();
     }
 
@@ -214,7 +220,7 @@ public class ContactsFragment extends Fragment {
                 public void onClick(View v) {
                     try {
                         Contact c = new Contact(jsonMessage.getString("name"), jsonMessage.getString("phone"));
-                        contacts.add(c);
+                        contacts.add(0,c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
                         UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
@@ -252,7 +258,7 @@ public class ContactsFragment extends Fragment {
             Contact c = null;
             try {
                 c = new Contact(jsonMessage.getString("name"), jsonMessage.getString("phone"));
-                contacts.add(c);
+                contacts.add(0,c);
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
                 UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");

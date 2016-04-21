@@ -45,9 +45,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * A fragment that launches other parts of the demo application.
- */
+
 public class UsermapFragment extends Fragment implements LocationListener {
 
     MapView mMapView;
@@ -140,22 +138,20 @@ public class UsermapFragment extends Fragment implements LocationListener {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone+"map");
         //Add all contacts to group
-        try {
-           mPubnub.subscribe("9999",receivedCallback);
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
+
     }
 
     private void updatePolyline(LatLng loc, String phone) {
         PolylineOptions po = polylines.get(phone);
-        polylines.remove(phone);
         if (po == null){
             po = new PolylineOptions();
             po.color(Color.BLUE).width(10);
         }
+        else{
+            polylines.remove(phone);
+        }
         po.add(loc);
-        Polyline pol =  mGoogleMap.addPolyline(po);
+        mGoogleMap.addPolyline(po);
         polylines.put(phone,po);
 
     }
@@ -165,7 +161,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
             m.remove();
         }
         markers.remove(phone);
-        m = mGoogleMap.addMarker(new MarkerOptions().position(mLatLng).title(name).snippet(name));;
+        m = mGoogleMap.addMarker(new MarkerOptions().position(mLatLng).title(name).snippet(name));
         markers.put(phone,m);
     }
     @Override
@@ -220,8 +216,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
             Log.e("PUBNUB", e.toString());
         }
         mPubnub.publish(mMyChannel, message,publishCallback);
-        mPubnub.publish("9999", message,publishCallback);
-
     }
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
