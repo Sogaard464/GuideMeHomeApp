@@ -26,7 +26,7 @@
                       android:hint="Name" />
         </android.support.design.widget.TextInputLayout>
 
-        <!-- Email Label -->
+        <!-- Phone Label -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

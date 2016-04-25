@@ -151,15 +151,15 @@ public class UsermapFragment extends Fragment implements LocationListener {
         mPubnub.setUUID(mPhone+"map");
         Gson gson = new Gson();
         ArrayList<Contact> contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
-        for (Contact c: contacts) {
-            try {
-                mPubnub.subscribe(c.getmPhone(),receivedCallback);
-            } catch (PubnubException e) {
-                e.printStackTrace();
+        if(contacts != null) {
+            for (Contact c : contacts) {
+                try {
+                    mPubnub.subscribe(c.getmPhone(), receivedCallback);
+                } catch (PubnubException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        Object test = mPubnub.getSubscribedChannelsArray();
-
     }
 
     private void updatePolyline(LatLng loc, String phone) {

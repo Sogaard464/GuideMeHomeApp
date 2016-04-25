@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 
 public class ContactsFragment extends Fragment {
 
-    ArrayList<Contact> contacts = new ArrayList<Contact>();;
+    ArrayList<Contact> contacts;
     private Pubnub mPubnub;
     private String mMyChannel;
     private String mPhone;
@@ -145,7 +145,9 @@ public class ContactsFragment extends Fragment {
         });
         // Initialize contacts
         contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
-
+        if(contacts == null){
+            contacts  = new ArrayList<Contact>();
+        }
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
         // Attach the adapter to the recyclerview to populate items

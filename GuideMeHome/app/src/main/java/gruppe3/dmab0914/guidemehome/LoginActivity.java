@@ -151,10 +151,10 @@ public class LoginActivity extends AppCompatActivity {
     public boolean validate() {
         boolean valid = true;
 
-        String email = _phoneText.getText().toString();
+        String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        if (email.isEmpty() || !Patterns.PHONE.matcher(email).matches()) {
+        if (phone.isEmpty() || !Patterns.PHONE.matcher(phone).matches()) {
             _phoneText.setError("enter a valid phone number");
             valid = false;
         } else {

@@ -68,6 +68,11 @@ public class ContactsAdapter extends
     // Return the total count of items
     @Override
     public int getItemCount() {
-        return mContacts.size();
+        if(mContacts != null) {
+            return mContacts.size();
+        }
+        else {
+            return 0;
+        }
     }
 }
