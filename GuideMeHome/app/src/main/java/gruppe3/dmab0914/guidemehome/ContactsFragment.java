@@ -13,7 +13,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +38,8 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -132,7 +136,7 @@ public class ContactsFragment extends Fragment {
         });
         //
         // Lookup the recyclerview in activity layout
-        RecyclerView rvContacts = (RecyclerView) v.findViewById(R.id.rvContacts);
+        final RecyclerView rvContacts = (RecyclerView) v.findViewById(R.id.rvContacts);
 
         //TODO Make menu to show when clicking on a contact
         ItemClickSupport.addTo(rvContacts).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
@@ -143,11 +147,17 @@ public class ContactsFragment extends Fragment {
                         Toast.LENGTH_SHORT).show();
             }
         });
+
         // Initialize contacts
         contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
         if(contacts == null){
             contacts  = new ArrayList<Contact>();
         }
+        Collections.sort(contacts, new Comparator<Contact>() {
+            public int compare(Contact c1, Contact c2) {
+                return c1.getName().compareTo(c2.getName());
+            }
+        });
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
         // Attach the adapter to the recyclerview to populate items
@@ -155,6 +165,7 @@ public class ContactsFragment extends Fragment {
         // Set layout manager to position the items
         rvContacts.setLayoutManager(new LinearLayoutManager(this.getContext()));
         // That's all!
+
         return v;
     }
 
@@ -163,8 +174,6 @@ public class ContactsFragment extends Fragment {
         final Dialog dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.dialog_addcontact);
         dialog.setTitle("Add Contact...");
-        String a = getTag();
-
         // set the custom dialog components - text, image and button
         final EditText phoneNumber = (EditText) dialog.findViewById(R.id.phoneText);
 
@@ -210,6 +219,7 @@ public class ContactsFragment extends Fragment {
         mPubnub.publish(phone + "-private", message, publishCallback);
     }
 
+
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone);
@@ -218,10 +228,6 @@ public class ContactsFragment extends Fragment {
         } catch (PubnubException e) {
             e.printStackTrace();
         }
-//        Long start = mPrefs.getLong("lasttime",0);
-        //      mPubnub.history(mMyChannel,start,100,historyCallback);
-     //   mPubnub.history(mMyChannel, true, 100, historyCallback);
-
     }
 
     public class ShowAcceptDialogRunnable implements Runnable {
@@ -269,8 +275,6 @@ public class ContactsFragment extends Fragment {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
-                    //TODO call to DB
                     dialog.dismiss();
                 }
             });
@@ -393,5 +397,7 @@ public class ContactsFragment extends Fragment {
 
 
     }
+
+
 }
 

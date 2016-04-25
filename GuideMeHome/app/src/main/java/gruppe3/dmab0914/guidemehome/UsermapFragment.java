@@ -265,6 +265,10 @@ public class UsermapFragment extends Fragment implements LocationListener {
         }
     }
 
+    public void unsubscribe(String phone) {
+            mPubnub.unsubscribe(phone);
+    }
+
     public class LocationChangeRunnable implements Runnable {
         private Location location;
         public LocationChangeRunnable(Location location) {

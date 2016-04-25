@@ -2,22 +2,13 @@ package gruppe3.dmab0914.guidemehome;
 
 import java.util.ArrayList;
 
-/**
- * Created by Seagaard on 04-04-2016.
- */
 public class User {
     private String mName;
     private String mPhone;
-    private double mLongitude;
-    private double mLatitude;
     private String mEmail;
     private boolean mGender;
     private String mToken;
-
-
-
     private ArrayList<Contact> mContacts = new ArrayList<>();
-
 
     public User(String name, String email){
         mName = name;
@@ -45,22 +36,6 @@ public class User {
 
     public void setPhone(String phone) {
         mPhone = phone;
-    }
-
-    public double getLongitude() {
-        return mLongitude;
-    }
-
-    public void setLongitude(double longitude) {
-        mLongitude = longitude;
-    }
-
-    public double getLatitude() {
-        return mLatitude;
-    }
-
-    public void setLatitude(double latitude) {
-        mLatitude = latitude;
     }
 
     public String getEmail() {

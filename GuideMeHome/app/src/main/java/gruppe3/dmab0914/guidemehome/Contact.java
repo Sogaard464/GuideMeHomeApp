@@ -4,19 +4,35 @@ import android.location.Location;
 
 import java.util.ArrayList;
 
-public class Contact {
+public class Contact{
     private String mName;
     private String mPhone;
     private Location mLocation;
-    private boolean mContactVisible;
-    private boolean mUserVisible;
+    private boolean mCan_see;
+    private boolean mWill_see;
     private boolean mOnlineStatus;
 
     public Contact(String name, String phone) {
         mName = name;
         mPhone = phone;
-        mContactVisible = true;
-        mUserVisible = true;
+        mWill_see = true;
+        mCan_see = true;
+    }
+
+    public boolean will_see() {
+        return mWill_see;
+    }
+
+    public void setmWill_see(boolean mWill_see) {
+        this.mWill_see = mWill_see;
+    }
+
+    public boolean can_see() {
+        return mCan_see;
+    }
+
+    public void setmCan_see(boolean mCan_see) {
+        this.mCan_see = mCan_see;
     }
 
     public String getName() {
@@ -25,26 +41,6 @@ public class Contact {
 
     public boolean isOnline() {
         return mOnlineStatus;
-    }
-
-    public void setmOnlineStatus(boolean mOnlineStatus) {
-        this.mOnlineStatus = mOnlineStatus;
-    }
-
-    public boolean ismContactVisible() {
-        return mContactVisible;
-    }
-
-    public void setmContactVisible(boolean mContactVisible) {
-        this.mContactVisible = mContactVisible;
-    }
-
-    public boolean ismUserVisible() {
-        return mUserVisible;
-    }
-
-    public void setmUserVisible(boolean mUserVisible) {
-        this.mUserVisible = mUserVisible;
     }
 
     public String getmPhone() {
@@ -63,5 +59,4 @@ public class Contact {
         this.mLocation = mLocation;
     }
 
-    private static int lastContactId = 0;
 }

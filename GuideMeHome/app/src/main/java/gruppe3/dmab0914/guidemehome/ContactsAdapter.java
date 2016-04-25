@@ -1,15 +1,33 @@
 package gruppe3.dmab0914.guidemehome;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.support.v4.app.FragmentManager;
+import com.google.gson.Gson;
 
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ContactsAdapter extends
         RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
@@ -20,7 +38,11 @@ public class ContactsAdapter extends
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
         public TextView nameTextView;
-        public Button messageButton;
+        public TextView phoneTextView;
+
+        public Switch visibleSwitch;
+        public Switch showSwitch;
+
 
         // We also create a constructor that accepts the entire item row
         // and does the view lookups to find each subview
@@ -29,7 +51,11 @@ public class ContactsAdapter extends
             // to access the context from any ViewHolder instance.
             super(itemView);
             nameTextView = (TextView) itemView.findViewById(R.id.contact_name);
-            messageButton = (Button) itemView.findViewById(R.id.message_button);
+            phoneTextView = (TextView) itemView.findViewById(R.id.contact_phone);
+
+            visibleSwitch = (Switch) itemView.findViewById(R.id.visible_switch);
+            showSwitch = (Switch) itemView.findViewById(R.id.show_switch);
+
         }
     }
     private List<Contact> mContacts;
@@ -55,14 +81,75 @@ public class ContactsAdapter extends
     // Involves populating data into the item through holder
     @Override
     public void onBindViewHolder(ContactsAdapter.ViewHolder viewHolder, int position) {
+        final MainActivity ma = MainActivity.getMainActivity();
+        final SharedPreferences mPrefs;
+        mPrefs = ma.getSharedPreferences("user", 0);
+
         // Get the data model based on position
         Contact contact = mContacts.get(position);
 
         // Set item views based on the data model
-        TextView textView = viewHolder.nameTextView;
-        textView.setText(contact.getName() + contact.getmPhone());
+        TextView name = viewHolder.nameTextView;
+        name.setText(contact.getName());
+        final TextView phone = viewHolder.phoneTextView;
+        phone.setText(contact.getmPhone());
+        Switch visibleSwitch = viewHolder.visibleSwitch;
+        visibleSwitch.setChecked(contact.can_see());
+        Switch showSwitch = viewHolder.showSwitch;
+        showSwitch.setChecked(contact.will_see());
+//TODO Notify contact about changes
+        showSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+                if(isChecked){
+                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                    umf.subscribe(phone.getText().toString());
+                }
+                else{
+                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                    umf.unsubscribe(phone.getText().toString());
+                }
+                String token = mPrefs.getString("token", "");
+                String myPhone = mPrefs.getString("phone","");
+                RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+isChecked);
+                ShowPostTask showTaskObject = new ShowPostTask();
+                String code = "";
+                try {
+                    code = showTaskObject.execute(rm).get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }}
+        );
 
+        visibleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+                if(isChecked){
+                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                    umf.subscribe(phone.getText().toString());
+                }
+                else{
+                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                    umf.unsubscribe(phone.getText().toString());
+                }
+                String token = mPrefs.getString("token", "");
+                String myPhone = mPrefs.getString("phone","");
+                RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+ isChecked);
+                VisibilityPostTask visibilityPostTask = new VisibilityPostTask();
+                String code = "";
+                try {
+                    code = visibilityPostTask.execute(rm).get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }}
+        );
     }
 
     // Return the total count of items
@@ -73,6 +160,162 @@ public class ContactsAdapter extends
         }
         else {
             return 0;
+        }
+    }
+
+    private class VisibilityPostTask extends AsyncTask<RequestModel, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(RequestModel... params) {
+            String requestMethod;
+            String urlString;
+            requestMethod = "POST";
+            urlString = "http://guidemehome.azurewebsites.net/setvisibility";
+            int code = 0;
+            Gson gson = new Gson();
+            String urlParameters = gson.toJson(params[0]);
+            int timeout = 5000;
+            URL url;
+            HttpURLConnection connection = null;
+            try {
+                // Create connection
+                url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(requestMethod);
+                connection.setRequestProperty("Content-Type",
+                        "application/json;charset=utf-8");
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(timeout);
+                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
+
+                connection.setReadTimeout(timeout);
+                connection.connect();
+                // Send request
+                OutputStream wr = new BufferedOutputStream(
+                        connection.getOutputStream());
+                wr.write(urlParameters.getBytes());
+                wr.flush();
+                wr.close();
+                int retries = 0;
+                while(code == 0 && retries <= 50){
+                    try {
+                        // Get Response
+                        code = connection.getResponseCode();
+                        if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
+                            return String.valueOf(code);
+                        }
+                    }
+                    catch(SocketTimeoutException e){
+                        retries++;
+                        System.out.println("Socket Timeout");
+                    }
+                }
+            } catch (SocketTimeoutException ex) {
+                ex.printStackTrace();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException ex) {
+
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return String.valueOf(code);
+        }
+    }
+
+    private class ShowPostTask extends AsyncTask<RequestModel, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(RequestModel... params) {
+            String requestMethod;
+            String urlString;
+            requestMethod = "POST";
+            urlString = "http://guidemehome.azurewebsites.net/setshow";
+            int code = 0;
+            Gson gson = new Gson();
+            String urlParameters = gson.toJson(params[0]);
+            int timeout = 5000;
+            URL url;
+            HttpURLConnection connection = null;
+            try {
+                // Create connection
+                url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(requestMethod);
+                connection.setRequestProperty("Content-Type",
+                        "application/json;charset=utf-8");
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(timeout);
+                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
+
+                connection.setReadTimeout(timeout);
+                connection.connect();
+                // Send request
+                OutputStream wr = new BufferedOutputStream(
+                        connection.getOutputStream());
+                wr.write(urlParameters.getBytes());
+                wr.flush();
+                wr.close();
+                int retries = 0;
+                while(code == 0 && retries <= 50){
+                    try {
+                        // Get Response
+                        code = connection.getResponseCode();
+                        if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
+                            return String.valueOf(code);
+                        }
+                    }
+                    catch(SocketTimeoutException e){
+                        retries++;
+                        System.out.println("Socket Timeout");
+                    }
+                }
+            } catch (SocketTimeoutException ex) {
+                ex.printStackTrace();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException ex) {
+
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return String.valueOf(code);
         }
     }
 }

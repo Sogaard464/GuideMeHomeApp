@@ -1,6 +1,7 @@
 package gruppe3.dmab0914.guidemehome;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -47,15 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    public ArrayList<Contact> getContacts() {
-        return contacts;
-    }
-
     private ArrayList<Contact> contacts = new ArrayList<>();
-    public ViewPager getViewPager() {
-        return viewPager;
-    }
 
+    public static MainActivity ma;
     @Override
     public void onBackPressed() {
         // do nothing.
@@ -66,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+        ma = this;
+
         SharedPreferences mPrefs = getSharedPreferences("user", 0);
         String token = mPrefs.getString("token", "");
         if(!token.isEmpty()) {
@@ -87,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+    public static MainActivity getMainActivity(){
+        return ma;
     }
     public void logoutMethod(MenuItem mi) {
         Toast.makeText(getBaseContext(), "Logout", Toast.LENGTH_LONG).show();
