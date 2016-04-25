@@ -1,5 +1,6 @@
 package gruppe3.dmab0914.guidemehome;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -66,11 +67,12 @@ public class ContactsFragment extends Fragment {
         public void successCallback(String channel, Object message) {
             JSONObject jsonMessage;
             jsonMessage = (JSONObject) message;
+            Activity a = getActivity();
             try {
                 if (jsonMessage.getString("command").equals("add")) {
-                    getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                    a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                 } else if (jsonMessage.getString("command").equals("accepted")) {
-                    getActivity().runOnUiThread(new AcceptedRunable(jsonMessage));
+                    a.runOnUiThread(new AcceptedRunable(jsonMessage));
 
                 }
             } catch (JSONException e) {
@@ -83,10 +85,11 @@ public class ContactsFragment extends Fragment {
         public void successCallback(String channel, Object message) {
             JSONObject jsonMessage;
             jsonMessage = (JSONObject) message;
+            Activity a = getActivity();
             try {
                 JSONObject js = jsonMessage.getJSONObject("0");
                 if (js.getString("command").equals("add")) {
-                    getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                    a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -94,7 +97,7 @@ public class ContactsFragment extends Fragment {
             for (int i = 0; i < jsonMessage.length() - 2; i++) {
                 try {
                     if (jsonMessage.getString("command").equals("add")) {
-                        getActivity().runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                        a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                         SharedPreferences.Editor prefsEditor = mPrefs.edit();
                         // prefsEditor.remove("lasttime");
                         //prefsEditor.putString("lasttime", jsonMessage.getString("timetoken"));
@@ -135,7 +138,8 @@ public class ContactsFragment extends Fragment {
         ItemClickSupport.addTo(rvContacts).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                Toast.makeText(getActivity().getBaseContext(), "Trykket",
+                Activity a = getActivity();
+                Toast.makeText(a.getBaseContext(), "Trykket",
                         Toast.LENGTH_SHORT).show();
             }
         });
@@ -172,7 +176,8 @@ public class ContactsFragment extends Fragment {
                 if(contacts.size() != 0) {
                     for (int i = 0; i < contacts.size() && !found; i++) {
                         if (contacts.get(i).getmPhone().equals(phone)) {
-                            Toast.makeText(getActivity().getBaseContext(), "Already a contact",
+                            Activity a = getActivity();
+                            Toast.makeText(a.getBaseContext(), "Already a contact",
                                     Toast.LENGTH_SHORT).show();
                             found = true;
                         } else {
@@ -247,7 +252,8 @@ public class ContactsFragment extends Fragment {
                         contacts.add(0,c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
-                        UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                        MainActivity a = (MainActivity) getActivity();
+                        UsermapFragment umf = (UsermapFragment)a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         umf.subscribe(jsonMessage.getString("phone"));
                         JSONObject message = new JSONObject();
                         try {
@@ -285,7 +291,8 @@ public class ContactsFragment extends Fragment {
                 contacts.add(0,c);
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
-                UsermapFragment umf = (UsermapFragment)getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                MainActivity a = (MainActivity) getActivity();
+                UsermapFragment umf = (UsermapFragment) a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                 umf.subscribe(jsonMessage.getString("phone"));
 
                 String token = mPrefs.getString("token", "");
