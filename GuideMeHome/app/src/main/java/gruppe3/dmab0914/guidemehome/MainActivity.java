@@ -14,8 +14,17 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -72,7 +81,26 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 1);
         }
     }
+    // Menu icons are inflated just as they were with actionbar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+    public void logoutMethod(MenuItem mi) {
+        Toast.makeText(getBaseContext(), "Logout", Toast.LENGTH_LONG).show();
+        SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+        prefsEditor.clear();
+        prefsEditor.commit();
 
+        Intent i= new Intent(MainActivity.this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        finish();
+
+        startActivity(i);
+    }
     private boolean isTokenValid(String token) {
         UserPostTask postTaskObject = new UserPostTask();
         String code = "";

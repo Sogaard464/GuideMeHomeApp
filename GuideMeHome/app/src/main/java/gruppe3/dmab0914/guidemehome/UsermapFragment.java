@@ -1,5 +1,6 @@
 package gruppe3.dmab0914.guidemehome;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -88,7 +89,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
                 mLat = jsonMessage.getDouble("lat");
                 mLng = jsonMessage.getDouble("lng");
                 LatLng mLatLng = new LatLng(mLat, mLng);
-                getActivity().runOnUiThread(new DrawRoutesRunnable(mLatLng,phone,name));
+                Activity a = getActivity();
+                a.runOnUiThread(new DrawRoutesRunnable(mLatLng,phone,name));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -156,6 +158,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
                 e.printStackTrace();
             }
         }
+        Object test = mPubnub.getSubscribedChannelsArray();
 
     }
 
@@ -211,7 +214,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        getActivity().runOnUiThread(new LocationChangeRunnable(location));
+        Activity a = getActivity();
+        a.runOnUiThread(new LocationChangeRunnable(location));
         /*String locationString = location.getLatitude() + ":" + location.getLongitude();
         String token = mPrefs.getString("token", "");
         RequestModel rm = new RequestModel(token,locationString);

@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="gruppe3.dmab0914.guidemehome.MainActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:id="@+id/logout"
+        app:showAsAction="ifRoom|withText"
+        android:title="Logout"
+        android:onClick="logoutMethod">
+    </item>
 </menu>
