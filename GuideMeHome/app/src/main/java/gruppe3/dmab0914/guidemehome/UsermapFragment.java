@@ -61,7 +61,8 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private String mName;
     private SharedPreferences mPrefs;
     private Map<String,PolylineOptions> polylines = new HashMap<>();;
-    private Map<String,Marker> markers = new HashMap<>();;
+    private Map<String,Marker> markers = new HashMap<>();
+    private Activity mActivity;
 
     Callback publishCallback = new Callback() {
         @Override
@@ -90,14 +91,18 @@ public class UsermapFragment extends Fragment implements LocationListener {
                 mLng = jsonMessage.getDouble("lng");
                 LatLng mLatLng = new LatLng(mLat, mLng);
                 Activity a = getActivity();
-                a.runOnUiThread(new DrawRoutesRunnable(mLatLng,phone,name));
+                mActivity.runOnUiThread(new DrawRoutesRunnable(mLatLng,phone,name));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     };
 
-
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mActivity = activity;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -119,11 +124,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
         }
         mGoogleMap = mMapView.getMap();
         mGoogleMap.setMyLocationEnabled(true);
-        try {
-            MapsInitializer.initialize(getActivity().getApplicationContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             public boolean onMarkerClick(Marker arg0) {
                 arg0.showInfoWindow();
@@ -131,6 +131,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
             }
         });
         LocationManager lm = (LocationManager) getActivity().getSystemService(this.getContext().LOCATION_SERVICE);
+
         if (ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -143,6 +144,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         }
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10, this);
         setupPubNub();
+
         return v;
     }
 
@@ -214,8 +216,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        Activity a = getActivity();
-        a.runOnUiThread(new LocationChangeRunnable(location));
+        mActivity.runOnUiThread(new LocationChangeRunnable(location));
         /*String locationString = location.getLatitude() + ":" + location.getLongitude();
         String token = mPrefs.getString("token", "");
         RequestModel rm = new RequestModel(token,locationString);
@@ -367,7 +368,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-
                 if (connection != null) {
                     connection.disconnect();
                 }

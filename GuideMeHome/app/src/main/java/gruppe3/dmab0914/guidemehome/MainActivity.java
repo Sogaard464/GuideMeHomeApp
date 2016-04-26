@@ -51,10 +51,10 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Contact> contacts = new ArrayList<>();
 
     public static MainActivity ma;
-    @Override
-    public void onBackPressed() {
-        // do nothing.
-    }
+   // @Override
+    //public void onBackPressed() {
+   //     // do nothing.
+   // }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

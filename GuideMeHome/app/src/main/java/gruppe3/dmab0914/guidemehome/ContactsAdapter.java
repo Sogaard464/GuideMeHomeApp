@@ -89,7 +89,7 @@ public class ContactsAdapter extends
         Contact contact = mContacts.get(position);
 
         // Set item views based on the data model
-        TextView name = viewHolder.nameTextView;
+        final TextView name = viewHolder.nameTextView;
         name.setText(contact.getName());
         final TextView phone = viewHolder.phoneTextView;
         phone.setText(contact.getmPhone());
@@ -104,12 +104,14 @@ public class ContactsAdapter extends
             public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
                 if(isChecked){
                     UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                    umf.subscribe(phone.getText().toString());
+
                 }
                 else{
                     UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                     umf.unsubscribe(phone.getText().toString());
                 }
+
+
                 String token = mPrefs.getString("token", "");
                 String myPhone = mPrefs.getString("phone","");
                 RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+isChecked);
@@ -136,6 +138,9 @@ public class ContactsAdapter extends
                     UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                     umf.unsubscribe(phone.getText().toString());
                 }
+                ContactsFragment cf = (ContactsFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
+                cf.sendShareMessage(phone.getText().toString(),name.getText().toString(),isChecked);
+
                 String token = mPrefs.getString("token", "");
                 String myPhone = mPrefs.getString("phone","");
                 RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+ isChecked);

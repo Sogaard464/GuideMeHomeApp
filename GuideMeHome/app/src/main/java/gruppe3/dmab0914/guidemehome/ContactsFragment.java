@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
+import java.io.Console;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -54,6 +55,7 @@ public class ContactsFragment extends Fragment {
     private String mName;
     private SharedPreferences mPrefs;
     private ContactsAdapter adapter;
+    private Activity mActivity;
 
     Callback publishCallback = new Callback() {
         @Override
@@ -77,7 +79,8 @@ public class ContactsFragment extends Fragment {
                     a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                 } else if (jsonMessage.getString("command").equals("accepted")) {
                     a.runOnUiThread(new AcceptedRunable(jsonMessage));
-
+                }else if (jsonMessage.getString("command").equals("share")) {
+                    a.runOnUiThread(new ShareRunable(jsonMessage));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -103,9 +106,7 @@ public class ContactsFragment extends Fragment {
                     if (jsonMessage.getString("command").equals("add")) {
                         a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
                         SharedPreferences.Editor prefsEditor = mPrefs.edit();
-                        // prefsEditor.remove("lasttime");
-                        //prefsEditor.putString("lasttime", jsonMessage.getString("timetoken"));
-                        //prefsEditor.commit();
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -113,7 +114,11 @@ public class ContactsFragment extends Fragment {
             }
         }
     };
-
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mActivity = activity;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -138,21 +143,12 @@ public class ContactsFragment extends Fragment {
         // Lookup the recyclerview in activity layout
         final RecyclerView rvContacts = (RecyclerView) v.findViewById(R.id.rvContacts);
 
-        //TODO Make menu to show when clicking on a contact
-        ItemClickSupport.addTo(rvContacts).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
-            @Override
-            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                Activity a = getActivity();
-                Toast.makeText(a.getBaseContext(), "Trykket",
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-
         // Initialize contacts
         contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
         if(contacts == null){
             contacts  = new ArrayList<Contact>();
         }
+        //Sort the contacts alphabetically
         Collections.sort(contacts, new Comparator<Contact>() {
             public int compare(Contact c1, Contact c2) {
                 return c1.getName().compareTo(c2.getName());
@@ -165,7 +161,6 @@ public class ContactsFragment extends Fragment {
         // Set layout manager to position the items
         rvContacts.setLayoutManager(new LinearLayoutManager(this.getContext()));
         // That's all!
-
         return v;
     }
 
@@ -176,7 +171,6 @@ public class ContactsFragment extends Fragment {
         dialog.setTitle("Add Contact...");
         // set the custom dialog components - text, image and button
         final EditText phoneNumber = (EditText) dialog.findViewById(R.id.phoneText);
-
         Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
         // if button is clicked, close the custom dialog
         dialogButton.setOnClickListener(new View.OnClickListener() {
@@ -187,8 +181,7 @@ public class ContactsFragment extends Fragment {
                 if(contacts.size() != 0) {
                     for (int i = 0; i < contacts.size() && !found; i++) {
                         if (contacts.get(i).getmPhone().equals(phone)) {
-                            Activity a = getActivity();
-                            Toast.makeText(a.getBaseContext(), "Already a contact",
+                            Toast.makeText(mActivity.getBaseContext(), "Already a contact",
                                     Toast.LENGTH_SHORT).show();
                             found = true;
                         } else {
@@ -219,6 +212,19 @@ public class ContactsFragment extends Fragment {
         mPubnub.publish(phone + "-private", message, publishCallback);
     }
 
+    public void sendShareMessage(String phone,String name,boolean share) {
+        JSONObject message = new JSONObject();
+        if (phone.length() != 0)
+            try {
+                message.put("command", "share");
+                message.put("phone", mPhone);
+                message.put("name", name);
+                message.put("share", share);
+            } catch (JSONException e) {
+                Log.e("PUBNUB", e.toString());
+            }
+        mPubnub.publish(phone + "-private", message, publishCallback);
+    }
 
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
@@ -315,7 +321,42 @@ public class ContactsFragment extends Fragment {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+    }
 
+    private class ShareRunable implements Runnable {
+        private JSONObject jsonMessage;
+        public ShareRunable(Object message) {
+            this.jsonMessage = (JSONObject) message;
+        }
+
+        public void run() {
+            Contact c = null;
+            try {
+                String phone = jsonMessage.getString("phone");
+                boolean found = false;
+                int index = 0;
+                for(int i = 0; i < contacts.size() && !found ;i++){
+                    if(contacts.get(i).getmPhone().equals(phone)){
+                        contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
+                        index = i;
+                        // Notify the adapter that an item was inserted at position 0
+                        adapter.notifyItemChanged(index);
+                        UsermapFragment umf = (UsermapFragment) getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+
+                        if(jsonMessage.getBoolean("share")){
+                            umf.subscribe(phone);
+                        }
+                        else{
+                            umf.unsubscribe(phone);
+                        }
+                        umf.unsubscribe(phone);
+                        found = true;
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
     private class ContactPostTask extends AsyncTask<RequestModel, String, String> {
