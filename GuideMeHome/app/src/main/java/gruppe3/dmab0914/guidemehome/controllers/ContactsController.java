@@ -1,21 +1,14 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.controllers;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,7 +23,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
-import java.io.Console;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -45,106 +37,55 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
+import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
+import gruppe3.dmab0914.guidemehome.lists.ContactsAdapter;
+import gruppe3.dmab0914.guidemehome.models.Contact;
+import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
-public class ContactsFragment extends Fragment {
+/**
+ * Created by Lasse on 27-04-2016.
+ */
+public class ContactsController {
 
-    ArrayList<Contact> contacts;
+
+    private ArrayList<Contact> contacts;
     private Pubnub mPubnub;
     private String mMyChannel;
     private String mPhone;
     private String mName;
     private SharedPreferences mPrefs;
-    private ContactsAdapter adapter;
     private Activity mActivity;
-
-    Callback publishCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object response) {
-            Log.d("PUBNUB", response.toString());
-        }
-
-        @Override
-        public void errorCallback(String channel, PubnubError error) {
-            Log.e("PUBNUB", error.toString());
-        }
-    };
-    Callback receivedCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object message) {
-            JSONObject jsonMessage;
-            jsonMessage = (JSONObject) message;
-            Activity a = getActivity();
-            try {
-                if (jsonMessage.getString("command").equals("add")) {
-                    a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
-                } else if (jsonMessage.getString("command").equals("accepted")) {
-                    a.runOnUiThread(new AcceptedRunable(jsonMessage));
-                }else if (jsonMessage.getString("command").equals("share")) {
-                    a.runOnUiThread(new ShareRunable(jsonMessage));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    Callback historyCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object message) {
-            JSONObject jsonMessage;
-            jsonMessage = (JSONObject) message;
-            Activity a = getActivity();
-            try {
-                JSONObject js = jsonMessage.getJSONObject("0");
-                if (js.getString("command").equals("add")) {
-                    a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            for (int i = 0; i < jsonMessage.length() - 2; i++) {
-                try {
-                    if (jsonMessage.getString("command").equals("add")) {
-                        a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
-                        SharedPreferences.Editor prefsEditor = mPrefs.edit();
-
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    };
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        mActivity = activity;
+    private Context context;
+    public ContactsAdapter getAdapter() {
+        return adapter;
     }
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // inflate and return the layout
-        View v = inflater.inflate(R.layout.fragment_contacts, container,
-                false);
+    public void setC(Context c) {
+        this.context = c;
+    }
+    private ContactsAdapter adapter;
+
+    private static ContactsController instance = null;
+    private ContactsController() {
+        // Exists only to defeat instantiation.
+    }
+    public static ContactsController getInstance() {
+        if(instance == null) {
+            instance = new ContactsController();
+        }
+        return instance;
+    }
+
+    public void InitializeFragment(Context c){
         //Get sharedpreferences in private mode (0)
-        mPrefs = getContext().getSharedPreferences("user", 0);
+        mPrefs = c.getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
         mMyChannel = mPhone + "-private";
         Gson gson = new Gson();
-        setupPubNub();
-        Button addContactButton = (Button) v.findViewById(R.id.addButton);
-        addContactButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                showAddContactDialog();
-            }
-        });
-        //
-        // Lookup the recyclerview in activity layout
-        final RecyclerView rvContacts = (RecyclerView) v.findViewById(R.id.rvContacts);
-
         // Initialize contacts
-        contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
+        contacts = gson.fromJson(mPrefs.getString("contacts",""), new TypeToken<ArrayList<Contact>>() {}.getType());
         if(contacts == null){
             contacts  = new ArrayList<Contact>();
         }
@@ -156,17 +97,11 @@ public class ContactsFragment extends Fragment {
         });
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
-        // Attach the adapter to the recyclerview to populate items
-        rvContacts.setAdapter(adapter);
-        // Set layout manager to position the items
-        rvContacts.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        // That's all!
-        return v;
+        setupPubNub();
     }
-
-    private void showAddContactDialog() {
+    public void showAddContactDialog() {
         // custom dialog
-        final Dialog dialog = new Dialog(getContext());
+        final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_addcontact);
         dialog.setTitle("Add Contact...");
         // set the custom dialog components - text, image and button
@@ -181,24 +116,30 @@ public class ContactsFragment extends Fragment {
                 if(contacts.size() != 0) {
                     for (int i = 0; i < contacts.size() && !found; i++) {
                         if (contacts.get(i).getmPhone().equals(phone)) {
-                            Toast.makeText(mActivity.getBaseContext(), "Already a contact",
-                                    Toast.LENGTH_SHORT).show();
                             found = true;
-                        } else {
-                            sendAddMessage(phone);
                         }
                     }
-                }
-                    else{
-                    sendAddMessage(phone);
+
+                    if(!found){
+                        sendAddMessage(phone);
+                        Log.d("First send","Send here");
                     }
+                    else {
+                        Toast.makeText(mActivity.getBaseContext(), "Already a contact",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else{
+                    sendAddMessage(phone);
+                    Log.d("Second send","Send here");
+
+                }
                 dialog.dismiss();
             }
 
         });
         dialog.show();
     }
-
     private void sendAddMessage(String phone) {
         JSONObject message = new JSONObject();
         if (phone.length() != 0)
@@ -236,6 +177,42 @@ public class ContactsFragment extends Fragment {
         }
     }
 
+
+    public void setmActivity(Activity mActivity) {
+        this.mActivity = mActivity;
+    }
+
+    Callback publishCallback = new Callback() {
+        @Override
+        public void successCallback(String channel, Object response) {
+            Log.d("PUBNUB", response.toString());
+        }
+
+        @Override
+        public void errorCallback(String channel, PubnubError error) {
+            Log.e("PUBNUB", error.toString());
+        }
+    };
+    Callback receivedCallback = new Callback() {
+        @Override
+        public void successCallback(String channel, Object message) {
+            JSONObject jsonMessage;
+            jsonMessage = (JSONObject) message;
+            Activity a = mActivity;
+            try {
+                if (jsonMessage.getString("command").equals("add")) {
+                    a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+                } else if (jsonMessage.getString("command").equals("accepted")) {
+                    a.runOnUiThread(new AcceptedRunable(jsonMessage));
+                }else if (jsonMessage.getString("command").equals("share")) {
+                    a.runOnUiThread(new ShareRunable(jsonMessage));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
     public class ShowAcceptDialogRunnable implements Runnable {
         private JSONObject jsonMessage;
 
@@ -244,11 +221,12 @@ public class ContactsFragment extends Fragment {
         }
 
         public void run() {
-            final Dialog dialog = new Dialog(getContext());
+            final Dialog dialog = new Dialog(context);
             dialog.setCanceledOnTouchOutside(false);
             dialog.setCancelable(false);
             dialog.setContentView(R.layout.dialog_allowcontact);
             dialog.setTitle("Add Contact...");
+
             // set the custom dialog components - text, image and button
             final TextView textview = (TextView) dialog.findViewById(R.id.textView);
             try {
@@ -266,7 +244,7 @@ public class ContactsFragment extends Fragment {
                         contacts.add(0,c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
-                        MainActivity a = (MainActivity) getActivity();
+                        MainActivity a = MainActivity.getMainActivity();
                         UsermapFragment umf = (UsermapFragment)a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         umf.subscribe(jsonMessage.getString("phone"));
                         JSONObject message = new JSONObject();
@@ -278,6 +256,17 @@ public class ContactsFragment extends Fragment {
                             Log.e("PUBNUB", e.toString());
                         }
                         mPubnub.publish(jsonMessage.getString("phone") + "-private", message, publishCallback);
+                        String token = mPrefs.getString("token", "");
+                        RequestModel rm = new RequestModel(token,mPhone+":"+jsonMessage.getString("phone"));
+                        ContactPostTask postTaskObject = new ContactPostTask();
+                        String code = "";
+                        try {
+                            code = postTaskObject.execute(rm).get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -303,21 +292,11 @@ public class ContactsFragment extends Fragment {
                 contacts.add(0,c);
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
-                MainActivity a = (MainActivity) getActivity();
+                MainActivity a = MainActivity.getMainActivity();
                 UsermapFragment umf = (UsermapFragment) a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                 umf.subscribe(jsonMessage.getString("phone"));
 
-                String token = mPrefs.getString("token", "");
-                RequestModel rm = new RequestModel(token,mPhone+":"+jsonMessage.getString("phone"));
-                ContactPostTask postTaskObject = new ContactPostTask();
-                String code = "";
-                try {
-                    code = postTaskObject.execute(rm).get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -331,19 +310,15 @@ public class ContactsFragment extends Fragment {
         }
 
         public void run() {
-            Contact c = null;
             try {
                 String phone = jsonMessage.getString("phone");
                 boolean found = false;
-                int index = 0;
                 for(int i = 0; i < contacts.size() && !found ;i++){
                     if(contacts.get(i).getmPhone().equals(phone)){
                         contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
-                        index = i;
                         // Notify the adapter that an item was inserted at position 0
-                        adapter.notifyItemChanged(index);
-                        UsermapFragment umf = (UsermapFragment) getActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-
+                        adapter.notifyItemChanged(i);
+                        UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         if(jsonMessage.getBoolean("share")){
                             umf.subscribe(phone);
                         }
@@ -439,6 +414,4 @@ public class ContactsFragment extends Fragment {
 
     }
 
-
 }
-

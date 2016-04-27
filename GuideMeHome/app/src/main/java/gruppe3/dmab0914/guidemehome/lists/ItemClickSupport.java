@@ -1,7 +1,9 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.lists;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import gruppe3.dmab0914.guidemehome.R;
 
 public class ItemClickSupport {
     private final RecyclerView mRecyclerView;

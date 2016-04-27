@@ -1,4 +1,4 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.models;
 
 /**
  * Created by Lasse on 07-04-2016.

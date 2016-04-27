@@ -1,4 +1,4 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.activities;
 
 /**
  * Created by Seagaard on 04-04-2016.
@@ -10,15 +10,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+
+import android.content.Intent;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
 
 import com.google.gson.Gson;
 
@@ -33,78 +32,74 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SignupActivity extends AppCompatActivity {
-    private static final String TAG = "SignupActivity";
+import butterknife.ButterKnife;
+import butterknife.Bind;
+import gruppe3.dmab0914.guidemehome.controllers.LoginController;
+import gruppe3.dmab0914.guidemehome.models.LoginUser;
+import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.models.User;
 
-    @Bind(R.id.input_name)
-    EditText _nameText;
+public class LoginActivity extends AppCompatActivity {
+    private static final String TAG = "LoginActivity";
+    private static final int REQUEST_SIGNUP = 0;
+    private LoginController lc;
     @Bind(R.id.input_phone)
     EditText _phoneText;
     @Bind(R.id.input_password)
     EditText _passwordText;
-    @Bind(R.id.btn_signup)
-    Button _signupButton;
-    @Bind(R.id.link_login)
-    TextView _loginLink;
+    @Bind(R.id.btn_login)
+    Button _loginButton;
+    @Bind(R.id.link_signup)
+    TextView _signupLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_signup);
+        setContentView(R.layout.activity_login);
+        lc = new LoginController();
         ButterKnife.bind(this);
 
-        _signupButton.setOnClickListener(new View.OnClickListener() {
+        _loginButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                signup();
+                login();
             }
         });
 
-        _loginLink.setOnClickListener(new View.OnClickListener() {
+        _signupLink.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                // Finish the registration screen and return to the Login activity
-                finish();
+                // Start the Signup activity
+                Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
+                startActivityForResult(intent, REQUEST_SIGNUP);
             }
         });
     }
 
-    public void signup() {
-        Log.d(TAG, "Signup");
-
+    public void login() {
         if (!validate()) {
-            onSignupFailed();
+            onLoginFailed();
             return;
         }
-
-        _signupButton.setEnabled(false);
-
-        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
+        _loginButton.setEnabled(false);
+        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
                 R.style.MyMaterialTheme);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Creating Account...");
-        progressDialog.show();
-
-        String name = _nameText.getText().toString();
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        LoginUser userObject = new LoginUser(name, phone, password);
+        LoginUser userObject = new LoginUser("", phone, password);
         UserPostTask postTaskObject = new UserPostTask();
         String code = "";
         try {
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Authenticating...");
+            progressDialog.show();
             code = postTaskObject.execute(userObject).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -112,40 +107,50 @@ public class SignupActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         if(code.equals("200")){
-            onSignupSuccess();
+            progressDialog.dismiss();
+            onLoginSuccess();
+
         }
         else{
-            onSignupFailed();
+            progressDialog.dismiss();
+            onLoginFailed();
         }
-        progressDialog.dismiss();
     }
 
 
-    public void onSignupSuccess() {
-        _signupButton.setEnabled(true);
-        setResult(RESULT_OK, null);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_SIGNUP) {
+            if (resultCode == RESULT_OK) {
+                setResult(1);
+                this.finish();
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        // disable going back to the MainActivity
+        moveTaskToBack(true);
+    }
+
+    public void onLoginSuccess() {
+        _loginButton.setEnabled(true);
+        setResult(1,null);
         finish();
     }
 
-    public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Signup failed", Toast.LENGTH_LONG).show();
+    public void onLoginFailed() {
+        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
 
-        _signupButton.setEnabled(true);
+        _loginButton.setEnabled(true);
     }
 
     public boolean validate() {
         boolean valid = true;
 
-        String name = _nameText.getText().toString();
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
-
-        if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
-            valid = false;
-        } else {
-            _nameText.setError(null);
-        }
 
         if (phone.isEmpty() || !Patterns.PHONE.matcher(phone).matches()) {
             _phoneText.setError("enter a valid phone number");
@@ -164,6 +169,7 @@ public class SignupActivity extends AppCompatActivity {
         return valid;
     }
 
+
     private class UserPostTask extends AsyncTask<LoginUser, String, String> {
         @Override
         protected void onPreExecute() {
@@ -175,7 +181,7 @@ public class SignupActivity extends AppCompatActivity {
             String requestMethod;
             String urlString;
             requestMethod = "POST";
-            urlString = "http://guidemehome.azurewebsites.net/signup";
+            urlString = "http://guidemehome.azurewebsites.net/signin";
             int code = 0;
 
             Gson gson = new Gson();
@@ -207,11 +213,15 @@ public class SignupActivity extends AppCompatActivity {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 10){
+               while(code == 0 && retries <= 50){
                     try {
                         // Get Response
                         code = connection.getResponseCode();
                         if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
                             return String.valueOf(code);
                         }
                     }
@@ -238,6 +248,7 @@ public class SignupActivity extends AppCompatActivity {
                 prefsEditor.putString("token", u.getToken());
                 prefsEditor.putString("contacts",gson.toJson(u.getContacts()));
                 prefsEditor.commit();
+
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();
 

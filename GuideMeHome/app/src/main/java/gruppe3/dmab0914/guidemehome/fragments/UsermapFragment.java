@@ -1,4 +1,4 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.fragments;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -24,7 +23,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -49,6 +47,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import gruppe3.dmab0914.guidemehome.models.Contact;
+import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
 
 public class UsermapFragment extends Fragment implements LocationListener {
@@ -217,18 +219,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         mActivity.runOnUiThread(new LocationChangeRunnable(location));
-        /*String locationString = location.getLatitude() + ":" + location.getLongitude();
-        String token = mPrefs.getString("token", "");
-        RequestModel rm = new RequestModel(token,locationString);
-        LocationPostTask postTaskObject = new LocationPostTask();
-        String code = "";
-        try {
-            code = postTaskObject.execute(rm).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }*/
     }
     private void broadcastLocation(Location location) {
         JSONObject message = new JSONObject();
@@ -295,86 +285,4 @@ public class UsermapFragment extends Fragment implements LocationListener {
         }
     }
 
-    private class LocationPostTask extends AsyncTask<RequestModel, String, String> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(RequestModel... params) {
-            String requestMethod;
-            String urlString;
-            requestMethod = "POST";
-            urlString = "http://guidemehome.azurewebsites.net/updatelocation";
-            int code = 0;
-
-            Gson gson = new Gson();
-
-            String urlParameters = gson.toJson(params[0]);
-
-            int timeout = 5000;
-            URL url;
-            HttpURLConnection connection = null;
-            try {
-                // Create connection
-
-                url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod(requestMethod);
-                connection.setRequestProperty("Content-Type",
-                        "application/json;charset=utf-8");
-                connection.setUseCaches(false);
-                connection.setDoInput(true);
-                connection.setDoOutput(true);
-                connection.setConnectTimeout(timeout);
-                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
-
-                connection.setReadTimeout(timeout);
-                connection.connect();
-                // Send request
-                OutputStream wr = new BufferedOutputStream(
-                        connection.getOutputStream());
-                wr.write(urlParameters.getBytes());
-                wr.flush();
-                wr.close();
-                int retries = 0;
-                while(code == 0 && retries <= 10){
-                    try {
-                        // Get Response
-                        code = connection.getResponseCode();
-                        if (code == 400) {
-                            return String.valueOf(code);
-                        } else if (code == 404) {
-                            return String.valueOf(code);
-                        } else if (code == 500) {
-                            return String.valueOf(code);
-                        }
-                    }
-                    catch(SocketTimeoutException e){
-                        retries++;
-                        System.out.println("Socket Timeout");
-                    }
-                }
-            } catch (SocketTimeoutException ex) {
-                ex.printStackTrace();
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            } catch (IOException ex) {
-
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-            return String.valueOf(code);
-        }
-
-
-    }
 }

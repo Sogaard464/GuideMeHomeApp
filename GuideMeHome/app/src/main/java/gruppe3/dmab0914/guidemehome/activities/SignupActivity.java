@@ -1,4 +1,4 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.activities;
 
 /**
  * Created by Seagaard on 04-04-2016.
@@ -10,14 +10,18 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-
-import android.content.Intent;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import gruppe3.dmab0914.guidemehome.models.LoginUser;
+import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.models.User;
 
 import com.google.gson.Gson;
 
@@ -36,70 +40,66 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import butterknife.ButterKnife;
-import butterknife.Bind;
+public class SignupActivity extends AppCompatActivity {
+    private static final String TAG = "SignupActivity";
 
-public class LoginActivity extends AppCompatActivity {
-    private static final String TAG = "LoginActivity";
-    private static final int REQUEST_SIGNUP = 0;
-
+    @Bind(R.id.input_name)
+    EditText _nameText;
     @Bind(R.id.input_phone)
     EditText _phoneText;
     @Bind(R.id.input_password)
     EditText _passwordText;
-    @Bind(R.id.btn_login)
-    Button _loginButton;
-    @Bind(R.id.link_signup)
-    TextView _signupLink;
+    @Bind(R.id.btn_signup)
+    Button _signupButton;
+    @Bind(R.id.link_login)
+    TextView _loginLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
 
-        _loginButton.setOnClickListener(new View.OnClickListener() {
-
+        _signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                login();
+                signup();
             }
         });
 
-        _signupLink.setOnClickListener(new View.OnClickListener() {
-
+        _loginLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start the Signup activity
-                Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
-                startActivityForResult(intent, REQUEST_SIGNUP);
+                // Finish the registration screen and return to the Login activity
+                finish();
             }
         });
     }
 
-    public void login() {
-        Log.d(TAG, "Login");
+    public void signup() {
+        Log.d(TAG, "Signup");
 
         if (!validate()) {
-            onLoginFailed();
+            onSignupFailed();
             return;
         }
 
-        _loginButton.setEnabled(false);
+        _signupButton.setEnabled(false);
 
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
+        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
                 R.style.MyMaterialTheme);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
-        progressDialog.show();
 
+        String name = _nameText.getText().toString();
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        LoginUser userObject = new LoginUser("", phone, password);
+        LoginUser userObject = new LoginUser(name, phone, password);
         UserPostTask postTaskObject = new UserPostTask();
         String code = "";
         try {
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Creating Account...");
+            progressDialog.show();
             code = postTaskObject.execute(userObject).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -107,48 +107,41 @@ public class LoginActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         if(code.equals("200")){
-            onLoginSuccess();
+            progressDialog.dismiss();
+            onSignupSuccess();
         }
         else{
-            onLoginFailed();
-        }
-        progressDialog.dismiss();
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_SIGNUP) {
-            if (resultCode == RESULT_OK) {
-                setResult(1);
-                this.finish();
-            }
+            progressDialog.dismiss();
+            onSignupFailed();
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        // disable going back to the MainActivity
-        moveTaskToBack(true);
-    }
 
-    public void onLoginSuccess() {
-        _loginButton.setEnabled(true);
-        setResult(1,null);
+    public void onSignupSuccess() {
+        _signupButton.setEnabled(true);
+        setResult(RESULT_OK, null);
         finish();
     }
 
-    public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+    public void onSignupFailed() {
+        Toast.makeText(getBaseContext(), "Signup failed", Toast.LENGTH_LONG).show();
 
-        _loginButton.setEnabled(true);
+        _signupButton.setEnabled(true);
     }
 
     public boolean validate() {
         boolean valid = true;
 
+        String name = _nameText.getText().toString();
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
+
+        if (name.isEmpty() || name.length() < 3) {
+            _nameText.setError("at least 3 characters");
+            valid = false;
+        } else {
+            _nameText.setError(null);
+        }
 
         if (phone.isEmpty() || !Patterns.PHONE.matcher(phone).matches()) {
             _phoneText.setError("enter a valid phone number");
@@ -167,7 +160,6 @@ public class LoginActivity extends AppCompatActivity {
         return valid;
     }
 
-
     private class UserPostTask extends AsyncTask<LoginUser, String, String> {
         @Override
         protected void onPreExecute() {
@@ -179,7 +171,7 @@ public class LoginActivity extends AppCompatActivity {
             String requestMethod;
             String urlString;
             requestMethod = "POST";
-            urlString = "http://guidemehome.azurewebsites.net/signin";
+            urlString = "http://guidemehome.azurewebsites.net/signup";
             int code = 0;
 
             Gson gson = new Gson();
@@ -211,15 +203,11 @@ public class LoginActivity extends AppCompatActivity {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-               while(code == 0 && retries <= 50){
+                while(code == 0 && retries <= 10){
                     try {
                         // Get Response
                         code = connection.getResponseCode();
                         if (code == 400) {
-                            return String.valueOf(code);
-                        } else if (code == 404) {
-                            return String.valueOf(code);
-                        } else if (code == 500) {
                             return String.valueOf(code);
                         }
                     }
@@ -246,7 +234,6 @@ public class LoginActivity extends AppCompatActivity {
                 prefsEditor.putString("token", u.getToken());
                 prefsEditor.putString("contacts",gson.toJson(u.getContacts()));
                 prefsEditor.commit();
-
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();
 

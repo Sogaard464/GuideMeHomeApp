@@ -1,6 +1,4 @@
-package gruppe3.dmab0914.guidemehome;
-
-import java.util.Objects;
+package gruppe3.dmab0914.guidemehome.vos;
 
 
 public class RequestModel {

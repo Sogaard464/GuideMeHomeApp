@@ -1,19 +1,16 @@
-package gruppe3.dmab0914.guidemehome;
+package gruppe3.dmab0914.guidemehome.lists;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.support.v4.app.FragmentManager;
+
 import com.google.gson.Gson;
 
 import java.io.BufferedOutputStream;
@@ -28,6 +25,14 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
+import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
+import gruppe3.dmab0914.guidemehome.vos.RequestModel;
+import gruppe3.dmab0914.guidemehome.fragments.ContactsFragment;
+import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
+import gruppe3.dmab0914.guidemehome.models.Contact;
 
 public class ContactsAdapter extends
         RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
@@ -139,7 +144,8 @@ public class ContactsAdapter extends
                     umf.unsubscribe(phone.getText().toString());
                 }
                 ContactsFragment cf = (ContactsFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
-                cf.sendShareMessage(phone.getText().toString(),name.getText().toString(),isChecked);
+                ContactsController cc = ContactsController.getInstance();
+                cc.sendShareMessage(phone.getText().toString(),name.getText().toString(),isChecked);
 
                 String token = mPrefs.getString("token", "");
                 String myPhone = mPrefs.getString("phone","");
