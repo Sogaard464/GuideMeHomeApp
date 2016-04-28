@@ -1,6 +1,8 @@
 package gruppe3.dmab0914.guidemehome.fragments;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,11 +13,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -45,9 +50,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.vos.RequestModel;
@@ -60,6 +67,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private Pubnub mPubnub;
     private String mMyChannel;
     private String mPhone;
+    private Dialog dialog;
     private String mName;
     private SharedPreferences mPrefs;
     private Map<String,PolylineOptions> polylines = new HashMap<>();;
@@ -125,6 +133,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
             e.printStackTrace();
         }
         mGoogleMap = mMapView.getMap();
+    try{
         mGoogleMap.setMyLocationEnabled(true);
         mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             public boolean onMarkerClick(Marker arg0) {
@@ -145,11 +154,32 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
         }
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10, this);
+    }
+    catch (NullPointerException ne){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                getContext());
+        // set title
+        alertDialogBuilder.setTitle(mActivity.getString(R.string.update_google_play_title));
+        // set dialog message
+        AlertDialog.Builder builder = alertDialogBuilder
+                .setMessage(mActivity.getString(R.string.update_google_play_text))
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mActivity.finish();
+                    }
+                });
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        // show it
+        alertDialog.show();
+    }
+        
+
         setupPubNub();
 
         return v;
     }
-
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone+"map");

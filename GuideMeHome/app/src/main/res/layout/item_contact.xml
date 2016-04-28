@@ -23,11 +23,11 @@
     <Switch
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show"
+        android:text="@string/show_contact"
     android:id="@+id/show_switch" />
     <Switch
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Share"
+        android:text="@string/share_contact"
     android:id="@+id/visible_switch" />
 </LinearLayout>

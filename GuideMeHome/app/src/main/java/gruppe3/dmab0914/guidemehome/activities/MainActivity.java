@@ -1,5 +1,6 @@
 package gruppe3.dmab0914.guidemehome.activities;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -17,6 +18,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.gson.Gson;
 
 import java.io.BufferedOutputStream;
@@ -57,10 +61,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
         ma = this;
         mc = new MainController();
+        mc.setmActivity(getMainActivity());
         if (mc.isTokenValid() == true) {
             initiliaseUI();
             }
@@ -68,7 +72,11 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
             }
-        }
+
+    }
+
+
+
 
     // Menu icons are inflated just as they were with actionbar
     @Override
@@ -109,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initiliaseUI() {
-        setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
@@ -127,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+
     }
 
 

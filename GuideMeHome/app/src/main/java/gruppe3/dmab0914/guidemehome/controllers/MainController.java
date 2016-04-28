@@ -1,5 +1,6 @@
 package gruppe3.dmab0914.guidemehome.controllers;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -26,8 +27,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.fragments.ContactsFragment;
+import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
 import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.models.User;
@@ -38,7 +41,7 @@ import gruppe3.dmab0914.guidemehome.models.User;
 public class MainController {
     private ArrayList<Contact> contacts = new ArrayList<>();
     private SharedPreferences mPrefs = MainActivity.getMainActivity().getSharedPreferences("user", 0);
-
+    private Activity mActivity;
 
 
     public boolean isTokenValid() {
@@ -63,10 +66,14 @@ public class MainController {
             return false;
         }
     }
+    public void setmActivity(Activity mActivity) {
+        this.mActivity = mActivity;
+    }
     public void setupViewPager(ViewPager viewPager, FragmentManager fm) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(fm);
-        adapter.addFragment(new ContactsFragment(), "Contacts");
-        adapter.addFragment(new UsermapFragment(), "Map");
+        adapter.addFragment(new ContactsFragment(), mActivity.getString(R.string.contac_fragment_title));
+        adapter.addFragment(new UsermapFragment(), mActivity.getString(R.string.map_fragment_title));
+        adapter.addFragment(new DrawRouteFragment(), mActivity.getString(R.string.route_fragment_title));
         viewPager.setAdapter(adapter);
     }
 

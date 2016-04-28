@@ -122,13 +122,12 @@ public class ContactsController {
                             found = true;
                         }
                     }
-
                     if(!found){
                         sendAddMessage(phone);
                         Log.d("First send","Send here");
                     }
                     else {
-                        Toast.makeText(mActivity.getBaseContext(), "Already a contact",
+                        Toast.makeText(mActivity.getBaseContext(), mActivity.getString(R.string.add_contact_already),
                                 Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -290,7 +289,7 @@ public class ContactsController {
             // set the custom dialog components - text, image and button
             final TextView textview = (TextView) dialog.findViewById(R.id.textView);
             try {
-                textview.setText(jsonMessage.getString("name") + " wants to add you as friend!");
+                textview.setText(jsonMessage.getString("name") + mActivity.getString(R.string.add_contact_notify));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

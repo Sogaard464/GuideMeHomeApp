@@ -15,7 +15,7 @@
         android:id="@+id/dialogButtonAllow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Allow"
+        android:text="@string/allow_contact"
         android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -23,7 +23,7 @@
         android:id="@+id/dialogButtonDeny"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Deny"
+        android:text="@string/deny_contact"
         android:layout_below="@+id/textView"
         android:layout_alignRight="@+id/textView"
         android:layout_alignEnd="@+id/textView" />
