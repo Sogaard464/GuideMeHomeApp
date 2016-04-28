@@ -3,8 +3,10 @@ package gruppe3.dmab0914.guidemehome.controllers;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -97,6 +99,7 @@ public class ContactsController {
         });
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
+
         setupPubNub();
     }
     public void showAddContactDialog() {
@@ -145,6 +148,19 @@ public class ContactsController {
         if (phone.length() != 0)
             try {
                 message.put("command", "add");
+                message.put("phone", mPhone);
+                message.put("name", mName);
+            } catch (JSONException e) {
+                Log.e("PUBNUB", e.toString());
+            }
+        mPubnub.publish(phone + "-private", message, publishCallback);
+    }
+
+    private void sendDeleteMessage(String phone) {
+        JSONObject message = new JSONObject();
+        if (phone.length() != 0)
+            try {
+                message.put("command", "delete");
                 message.put("phone", mPhone);
                 message.put("name", mName);
             } catch (JSONException e) {
@@ -206,12 +222,56 @@ public class ContactsController {
                     a.runOnUiThread(new AcceptedRunable(jsonMessage));
                 }else if (jsonMessage.getString("command").equals("share")) {
                     a.runOnUiThread(new ShareRunable(jsonMessage));
+                }else if (jsonMessage.getString("command").equals("delete")) {
+                    a.runOnUiThread(new DeleteRunable(jsonMessage));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     };
+
+    public void DeleteContact(final int position) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                context);
+        // set title
+        alertDialogBuilder.setTitle(mActivity.getString(R.string.delete_contact_title));
+        // set dialog message
+        AlertDialog.Builder builder = alertDialogBuilder
+                .setMessage(mActivity.getString(R.string.delete_contact_text))
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Contact c = contacts.get(position);
+                        sendDeleteMessage(c.getmPhone());
+                        contacts.remove(c);
+                        adapter.notifyItemRemoved(position);
+                        UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                        umf.unsubscribe(c.getmPhone());
+                        String token = mPrefs.getString("token", "");
+                        RequestModel rm = new RequestModel(token, mPhone + ":"+ c.getmPhone());
+                        DeletePostTask deleteTaskObject = new DeletePostTask();
+                        String code = "";
+                        try {
+                            code = deleteTaskObject.execute(rm).get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        dialog.cancel();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        // show it
+        alertDialog.show();
+    }
 
     public class ShowAcceptDialogRunnable implements Runnable {
         private JSONObject jsonMessage;
@@ -316,7 +376,6 @@ public class ContactsController {
                 for(int i = 0; i < contacts.size() && !found ;i++){
                     if(contacts.get(i).getmPhone().equals(phone)){
                         contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
-                        // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemChanged(i);
                         UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         if(jsonMessage.getBoolean("share")){
@@ -325,6 +384,31 @@ public class ContactsController {
                         else{
                             umf.unsubscribe(phone);
                         }
+                        umf.unsubscribe(phone);
+                        found = true;
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class DeleteRunable implements Runnable {
+        private JSONObject jsonMessage;
+        public DeleteRunable(Object message) {
+            this.jsonMessage = (JSONObject) message;
+        }
+
+        public void run() {
+            try {
+                String phone = jsonMessage.getString("phone");
+                boolean found = false;
+                for(int i = 0; i < contacts.size() && !found ;i++){
+                    if(contacts.get(i).getmPhone().equals(phone)){
+                        contacts.remove(i);
+                        adapter.notifyItemRemoved(i);
+                        UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         umf.unsubscribe(phone);
                         found = true;
                     }
@@ -346,6 +430,83 @@ public class ContactsController {
             String urlString;
             requestMethod = "POST";
             urlString = "http://guidemehome.azurewebsites.net/addcontactsrelation";
+            int code = 0;
+            Gson gson = new Gson();
+            String urlParameters = gson.toJson(params[0]);
+            int timeout = 5000;
+            URL url;
+            HttpURLConnection connection = null;
+            try {
+                // Create connection
+                url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(requestMethod);
+                connection.setRequestProperty("Content-Type",
+                        "application/json;charset=utf-8");
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(timeout);
+                connection.setFixedLengthStreamingMode(urlParameters.getBytes().length);
+
+                connection.setReadTimeout(timeout);
+                connection.connect();
+                // Send request
+                OutputStream wr = new BufferedOutputStream(
+                        connection.getOutputStream());
+                wr.write(urlParameters.getBytes());
+                wr.flush();
+                wr.close();
+                int retries = 0;
+                while(code == 0 && retries <= 50){
+                    try {
+                        // Get Response
+                        code = connection.getResponseCode();
+                        if (code == 400) {
+                            return String.valueOf(code);
+                        } else if (code == 404) {
+                            return String.valueOf(code);
+                        } else if (code == 500) {
+                            return String.valueOf(code);
+                        }
+                    }
+                    catch(SocketTimeoutException e){
+                        retries++;
+                        System.out.println("Socket Timeout");
+                    }
+                }
+            } catch (SocketTimeoutException ex) {
+                ex.printStackTrace();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException ex) {
+
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return String.valueOf(code);
+        }
+    }
+    private class DeletePostTask extends AsyncTask<RequestModel, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(RequestModel... params) {
+            String requestMethod;
+            String urlString;
+            requestMethod = "POST";
+            urlString = "http://guidemehome.azurewebsites.net/deletecontact";
             int code = 0;
             Gson gson = new Gson();
             String urlParameters = gson.toJson(params[0]);

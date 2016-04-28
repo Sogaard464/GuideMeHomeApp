@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
+import gruppe3.dmab0914.guidemehome.lists.ItemClickSupport;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.lists.ContactsAdapter;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
@@ -83,11 +84,21 @@ public class ContactsFragment extends Fragment {
         //
         // Lookup the recyclerview in activity layout
         final RecyclerView rvContacts = (RecyclerView) v.findViewById(R.id.rvContacts);
-
         // Attach the adapter to the recyclerview to populate items
         rvContacts.setAdapter(cc.getAdapter());
         // Set layout manager to position the items
         rvContacts.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        ItemClickSupport.addTo(rvContacts).setOnItemLongClickListener(new ItemClickSupport.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
+
+                cc.DeleteContact(position);
+                return true;
+            }
+
+        });
+
+
         // That's all!
         return v;
     }
