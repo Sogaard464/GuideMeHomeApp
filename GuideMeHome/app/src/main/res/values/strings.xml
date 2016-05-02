@@ -29,4 +29,10 @@
     <string name="logout">Logout</string>
     <string name="logging_in_toast">Logging in... Please wait!</string>
     <string name="create_account_toast">Creating account... Please wait!</string>
+    <string name="signup_failed_toast">Signup failed</string>
+    <string name="name_input_error_not_enough_char">at least 3 characters</string>
+    <string name="enter_valid_phone">enter a valid phone number</string>
+    <string name="password_not_long_enough">between 4 and 10 alphanumeric characters</string>
+    <string name="login_failed_toast">Login failed</string>
+    <string name="cannot_get_location">Cannot acquire location</string>
 </resources>

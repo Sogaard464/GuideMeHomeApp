@@ -102,7 +102,6 @@ public class ContactsAdapter extends
         visibleSwitch.setChecked(contact.can_see());
         Switch showSwitch = viewHolder.showSwitch;
         showSwitch.setChecked(contact.will_see());
-//TODO Notify contact about changes
         showSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             @Override

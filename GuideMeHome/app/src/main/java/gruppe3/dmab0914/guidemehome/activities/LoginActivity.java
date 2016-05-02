@@ -135,7 +135,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), R.string.login_failed_toast, Toast.LENGTH_LONG).show();
 
         _loginButton.setEnabled(true);
     }
@@ -147,14 +147,14 @@ public class LoginActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
 
         if (phone.isEmpty() || !Patterns.PHONE.matcher(phone).matches()) {
-            _phoneText.setError("enter a valid phone number");
+            _phoneText.setError(getString(R.string.enter_valid_phone));
             valid = false;
         } else {
             _phoneText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
+            _passwordText.setError(getString(R.string.password_not_long_enough));
             valid = false;
         } else {
             _passwordText.setError(null);
@@ -222,7 +222,6 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     catch(SocketTimeoutException e){
                         retries++;
-                        System.out.println("Socket Timeout");
                     }
                 }
                 InputStream is = connection.getInputStream();

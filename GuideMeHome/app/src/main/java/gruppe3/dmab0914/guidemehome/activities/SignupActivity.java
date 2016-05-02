@@ -117,7 +117,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Signup failed", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), R.string.signup_failed_toast, Toast.LENGTH_LONG).show();
 
         _signupButton.setEnabled(true);
     }
@@ -130,21 +130,21 @@ public class SignupActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
 
         if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
+            _nameText.setError(getString(R.string.name_input_error_not_enough_char));
             valid = false;
         } else {
             _nameText.setError(null);
         }
 
         if (phone.isEmpty() || !Patterns.PHONE.matcher(phone).matches()) {
-            _phoneText.setError("enter a valid phone number");
+            _phoneText.setError(getString(R.string.enter_valid_phone));
             valid = false;
         } else {
             _phoneText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
+            _passwordText.setError(getString(R.string.password_not_long_enough));
             valid = false;
         } else {
             _passwordText.setError(null);
@@ -206,7 +206,6 @@ public class SignupActivity extends AppCompatActivity {
                     }
                     catch(SocketTimeoutException e){
                         retries++;
-                        System.out.println("Socket Timeout");
                     }
                 }
                 InputStream is = connection.getInputStream();

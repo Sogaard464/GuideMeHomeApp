@@ -74,7 +74,9 @@ public class MainController {
         adapter.addFragment(new ContactsFragment(), mActivity.getString(R.string.contac_fragment_title));
         adapter.addFragment(new UsermapFragment(), mActivity.getString(R.string.map_fragment_title));
         adapter.addFragment(new DrawRouteFragment(), mActivity.getString(R.string.route_fragment_title));
+        viewPager.setOffscreenPageLimit(2);
         viewPager.setAdapter(adapter);
+
     }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -162,7 +164,6 @@ public class MainController {
                         }
                     } catch (SocketTimeoutException e) {
                         retries++;
-                        System.out.println("Socket Timeout");
                     }
                 }
                 InputStream is = connection.getInputStream();

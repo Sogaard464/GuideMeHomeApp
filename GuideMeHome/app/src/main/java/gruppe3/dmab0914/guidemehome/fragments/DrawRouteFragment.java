@@ -13,12 +13,14 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -55,7 +57,9 @@ import gruppe3.dmab0914.guidemehome.models.Contact;
 
 public class DrawRouteFragment extends Fragment implements LocationListener {
 
-    MapView mMapView;
+    private MapView mMapView;
+    private static final String TAG = "DRF";
+
     private LatLng location;
     private GoogleMap mGoogleMap;
     private String mPhone;
@@ -65,10 +69,12 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private Polyline polylineToAdd;
     private String[] contacts;
     private ArrayAdapter<String> adapter;
+    private AutoCompleteTextView contact;
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mActivity = activity;
+        Log.d("DRF","Attached!");
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -77,6 +83,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         View v = inflater.inflate(R.layout.fragment_drawroute, container,
                 false);
         //Get sharedpreferences in private mode (0)
+
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
@@ -131,18 +138,8 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         alertDialog.show();
     }
         final AutoCompleteTextView destination = (AutoCompleteTextView) v.findViewById(R.id.actvDestination);
-        final AutoCompleteTextView contact = (AutoCompleteTextView) v.findViewById(R.id.actvContacts);
+        contact = (AutoCompleteTextView) v.findViewById(R.id.actvContacts);
         final ContactsController cc = ContactsController.getInstance();
-        ArrayList<String> ar = new ArrayList<>();
-        for (Contact c : cc.getContacts()) {
-            ar.add(c.getName());
-        }
-        contacts = ar.toArray(new String[ar.size()]);
-
-        adapter = new ArrayAdapter<String>(getContext(),
-                android.R.layout.simple_dropdown_item_1line,contacts);
-
-        contact.setAdapter(adapter);
         final Button getRoute = (Button) v.findViewById(R.id.home_button);
         getRoute.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,7 +156,9 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                         if(location != null){
                             getRoute(destination.getText().toString().replace(" ", "+"), location.latitude + "," + location.longitude);
                         }
-                        //TODO Notfiy user about no location
+                        else{
+                            Toast.makeText(getContext(), R.string.cannot_get_location, Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
             }
@@ -169,12 +168,15 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
     public void getUpdatedContacts(){
         ContactsController cc = ContactsController.getInstance();
+
         ArrayList<String> ar = new ArrayList<>();
         for (Contact c : cc.getContacts()) {
             ar.add(c.getName());
         }
         contacts = ar.toArray(new String[ar.size()]);
-        adapter.notifyDataSetChanged();
+        adapter = new ArrayAdapter<String>(getContext(),
+                android.R.layout.simple_dropdown_item_1line,contacts);
+        contact.setAdapter(adapter);
     }
 
     private void getRoute(String destination,String location){
@@ -225,6 +227,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         super.onResume();
         mMapView.onResume();
     }
+
 
     @Override
     public void onPause() {

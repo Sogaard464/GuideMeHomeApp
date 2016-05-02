@@ -27,4 +27,12 @@
     <string name="update_google_play_text">Opdater venligt Google Play Services.</string>
     <string name="update_google_play_title">Opdater Google Play</string>
     <string name="logout">Log ud</string>
+    <string name="logging_in_toast">Logger ind... Vent venligst!</string>
+    <string name="login_failed_toast">Login mislykkedes</string>
+    <string name="name_input_error_not_enough_char">mindst 3 tegn</string>
+    <string name="password_not_long_enough">mellem 4 og 10 alfanumeriske tegn</string>
+    <string name="signup_failed_toast">Opret mislykkedes</string>
+    <string name="enter_valid_phone">indtast gyldigt telefonnummer</string>
+    <string name="create_account_toast">Opretter konto... Vent venligst!</string>
+    <string name="cannot_get_location">Lokation kan ikke findes</string>
 </resources>

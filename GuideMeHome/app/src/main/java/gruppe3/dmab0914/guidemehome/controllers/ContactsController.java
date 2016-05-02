@@ -253,8 +253,7 @@ public class ContactsController {
                         sendDeleteMessage(c.getmPhone());
                         contacts.remove(c);
                         adapter.notifyItemRemoved(position);
-                        DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                        drf.getUpdatedContacts();
+
                         UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         umf.unsubscribe(c.getmPhone());
                         String token = mPrefs.getString("token", "");
@@ -313,9 +312,9 @@ public class ContactsController {
                         contacts.add(0,c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
-                        DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                        drf.getUpdatedContacts();
+
                         MainActivity a = MainActivity.getMainActivity();
+
                         UsermapFragment umf = (UsermapFragment)a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         umf.subscribe(jsonMessage.getString("phone"));
                         JSONObject message = new JSONObject();
@@ -363,13 +362,9 @@ public class ContactsController {
                 contacts.add(0,c);
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
-                DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                drf.getUpdatedContacts();
                 MainActivity a = MainActivity.getMainActivity();
                 UsermapFragment umf = (UsermapFragment) a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                 umf.subscribe(jsonMessage.getString("phone"));
-
-
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -390,8 +385,6 @@ public class ContactsController {
                     if(contacts.get(i).getmPhone().equals(phone)){
                         contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
                         adapter.notifyItemChanged(i);
-                        DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                        drf.getUpdatedContacts();
                         UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         if(jsonMessage.getBoolean("share")){
                             umf.subscribe(phone);
@@ -423,8 +416,7 @@ public class ContactsController {
                     if(contacts.get(i).getmPhone().equals(phone)){
                         contacts.remove(i);
                         adapter.notifyItemRemoved(i);
-                        DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                        drf.getUpdatedContacts();
+
                         UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         umf.unsubscribe(phone);
                         found = true;

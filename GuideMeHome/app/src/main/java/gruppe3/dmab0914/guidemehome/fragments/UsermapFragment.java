@@ -111,6 +111,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mActivity = activity;
+        Log.d("UMF","Attached!");
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
