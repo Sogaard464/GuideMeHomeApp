@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Indstillinger</string>
+    <string name="add_contact_already">Allerede en kontakt</string>
+    <string name="add_contact_button">Tilføj kontakt</string>
+    <string name="add_contact_notify"> vil være venner!</string>
+    <string name="allow_contact">Tillad</string>
+    <string name="already_a_member_login">Allerede medlem? Log ind</string>
+    <string name="contac_fragment_title">Kontakter</string>
+    <string name="create_account">Opret Konto</string>
+    <string name="delete">Slet</string>
+    <string name="delete_contact_text">Slet kontakt?</string>
+    <string name="delete_contact_title">Slet Kontakt</string>
+    <string name="deny_contact">Afvis</string>
+    <string name="enter_contact">Indtast Kontakt</string>
+    <string name="go_home">Guide</string>
+    <string name="login">Log ind</string>
+    <string name="map_fragment_title">Kort</string>
+    <string name="no_account_link">Ingen konto? Opret en</string>
+    <string name="password_hint">Kodeord</string>
+    <string name="phone_hint">Telefon</string>
+    <string name="route_fragment_title">Rute</string>
+    <string name="share_contact">Del</string>
+    <string name="show_contact">Vis</string>
+    <string name="type_destination">Indtast destination</string>
+    <string name="type_phone_number_hint">Indtast telefonnummer</string>
+    <string name="update_google_play_text">Opdater venligt Google Play Services.</string>
+    <string name="update_google_play_title">Opdater Google Play</string>
+    <string name="logout">Log ud</string>
+</resources>

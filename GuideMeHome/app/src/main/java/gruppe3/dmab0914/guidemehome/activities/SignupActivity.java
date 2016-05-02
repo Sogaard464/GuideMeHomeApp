@@ -86,9 +86,6 @@ public class SignupActivity extends AppCompatActivity {
 
         _signupButton.setEnabled(false);
 
-        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
-                R.style.MyMaterialTheme);
-
         String name = _nameText.getText().toString();
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
@@ -97,9 +94,7 @@ public class SignupActivity extends AppCompatActivity {
         UserPostTask postTaskObject = new UserPostTask();
         String code = "";
         try {
-            progressDialog.setIndeterminate(true);
-            progressDialog.setMessage("Creating Account...");
-            progressDialog.show();
+            Toast.makeText(getBaseContext(), R.string.create_account_toast, Toast.LENGTH_LONG).show();
             code = postTaskObject.execute(userObject).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -107,11 +102,9 @@ public class SignupActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         if(code.equals("200")){
-            progressDialog.dismiss();
             onSignupSuccess();
         }
         else{
-            progressDialog.dismiss();
             onSignupFailed();
         }
     }

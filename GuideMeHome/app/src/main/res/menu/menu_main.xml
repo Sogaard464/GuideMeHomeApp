@@ -5,7 +5,7 @@
     <item
         android:id="@+id/logout"
         app:showAsAction="ifRoom|withText"
-        android:title="Logout"
+        android:title="@string/logout"
         android:onClick="logoutMethod">
     </item>
 </menu>

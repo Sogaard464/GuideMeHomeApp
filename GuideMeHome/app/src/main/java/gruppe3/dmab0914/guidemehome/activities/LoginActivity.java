@@ -88,8 +88,6 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
         _loginButton.setEnabled(false);
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
-                R.style.MyMaterialTheme);
         String phone = _phoneText.getText().toString();
         String password = _passwordText.getText().toString();
 
@@ -97,9 +95,7 @@ public class LoginActivity extends AppCompatActivity {
         UserPostTask postTaskObject = new UserPostTask();
         String code = "";
         try {
-            progressDialog.setIndeterminate(true);
-            progressDialog.setMessage("Authenticating...");
-            progressDialog.show();
+            Toast.makeText(getBaseContext(), R.string.logging_in_toast, Toast.LENGTH_LONG).show();
             code = postTaskObject.execute(userObject).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -107,12 +103,10 @@ public class LoginActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         if(code.equals("200")){
-            progressDialog.dismiss();
             onLoginSuccess();
 
         }
         else{
-            progressDialog.dismiss();
             onLoginFailed();
         }
     }
@@ -178,6 +172,7 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(LoginUser... params) {
+
             String requestMethod;
             String urlString;
             requestMethod = "POST";

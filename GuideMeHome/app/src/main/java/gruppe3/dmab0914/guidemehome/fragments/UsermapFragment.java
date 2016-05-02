@@ -67,7 +67,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private Pubnub mPubnub;
     private String mMyChannel;
     private String mPhone;
-    private Dialog dialog;
     private String mName;
     private SharedPreferences mPrefs;
     private Map<String,PolylineOptions> polylines = new HashMap<>();;

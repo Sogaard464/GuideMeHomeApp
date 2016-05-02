@@ -1,16 +1,11 @@
 package gruppe3.dmab0914.guidemehome.activities;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -18,34 +13,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.gson.Gson;
-
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.MainController;
-import gruppe3.dmab0914.guidemehome.fragments.ContactsFragment;
-import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
-import gruppe3.dmab0914.guidemehome.models.Contact;
-import gruppe3.dmab0914.guidemehome.models.User;
 
 public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
@@ -72,13 +42,8 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
             }
-
     }
 
-
-
-
-    // Menu icons are inflated just as they were with actionbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -90,16 +55,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void logoutMethod(MenuItem mi) {
-        Toast.makeText(getBaseContext(), "Logout", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), R.string.logout, Toast.LENGTH_LONG).show();
         SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         prefsEditor.commit();
-
         Intent i= new Intent(MainActivity.this, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         finish();
-
         startActivity(i);
     }
 
