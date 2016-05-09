@@ -35,4 +35,6 @@
     <string name="password_not_long_enough">between 4 and 10 alphanumeric characters</string>
     <string name="login_failed_toast">Login failed</string>
     <string name="cannot_get_location">Cannot acquire location</string>
+    <string name="projectID">514664598062</string>
+
 </resources>

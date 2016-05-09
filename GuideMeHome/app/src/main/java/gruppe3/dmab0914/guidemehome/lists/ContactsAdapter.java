@@ -108,6 +108,7 @@ public class ContactsAdapter extends
             public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
                 if(isChecked){
                     UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                    umf.subscribe(phone.getText().toString());
 
                 }
                 else{

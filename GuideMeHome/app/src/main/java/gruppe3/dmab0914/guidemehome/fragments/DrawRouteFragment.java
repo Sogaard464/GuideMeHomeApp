@@ -1,7 +1,9 @@
 package gruppe3.dmab0914.guidemehome.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -29,8 +31,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.pubnub.api.Callback;
+import com.pubnub.api.PnGcmMessage;
+import com.pubnub.api.PnMessage;
+import com.pubnub.api.Pubnub;
+import com.pubnub.api.PubnubError;
+import com.pubnub.api.PubnubException;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -51,6 +62,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 
@@ -66,10 +78,12 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private String mName;
     private SharedPreferences mPrefs;
     private Activity mActivity;
+    private Pubnub mPubnub;
     private Polyline polylineToAdd;
     private String[] contacts;
     private ArrayAdapter<String> adapter;
     private AutoCompleteTextView contact;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -163,9 +177,14 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 }
             }
         });
+        setupPubNub();
         return v;
     }
-
+    private void setupPubNub() {
+        mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
+        mPubnub.setUUID(mPhone+"route");
+    }
+   
     public void getUpdatedContacts(){
         ContactsController cc = ContactsController.getInstance();
 
@@ -222,6 +241,8 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
         return poly;
     }
+
+
     @Override
     public void onResume() {
         super.onResume();
@@ -250,6 +271,12 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location newLocation) {
         location = new LatLng(newLocation.getLatitude(),newLocation.getLongitude());
+
+        if(polylineToAdd != null){
+          //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
+            mActivity.runOnUiThread(new IsOnRouteRunable());
+
+        }
         /*IsOnRouteTask isOnRouteTaskObject = new IsOnRouteTask();
         Boolean isLost = false;
         try {
@@ -397,27 +424,29 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         }
     }
 
-    private class IsOnRouteTask extends AsyncTask<String, String, Boolean> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+    private class IsOnRouteRunable implements Runnable {
+
+        public IsOnRouteRunable() {
         }
 
-        @Override
-        protected Boolean doInBackground(String... params) {
+        public void run() {
+
             List<LatLng> list = polylineToAdd.getPoints();
             Location currentPosition = new Location("");
             currentPosition.setLatitude(location.latitude);
             currentPosition.setLongitude(location.longitude);
             Location pointPosition = new Location("");
-            for (int i = 1; i < list.size(); i++) {
+            Boolean onRoute = false;
+            for (int i = 1; i < list.size() && !onRoute; i++) {
                 pointPosition.setLatitude(list.get(i).latitude);
                 pointPosition.setLongitude(list.get(i).longitude);
                 if (currentPosition.distanceTo(pointPosition) <= 50) {
-                    return false;
+                    onRoute = true;
                 }
             }
-            return true;
+            if(!onRoute){
+                Toast.makeText(mActivity.getBaseContext(),"Afvigelse",Toast.LENGTH_LONG).show();
+            }
         }
     }
 

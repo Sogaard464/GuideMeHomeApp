@@ -83,10 +83,6 @@ public class ContactsController {
         return instance;
     }
 
-    public static void resetInstance() {
-            instance = null;
-    }
-
     public void InitializeFragment(Context c){
         //Get sharedpreferences in private mode (0)
         mPrefs = c.getSharedPreferences("user", 0);
