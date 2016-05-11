@@ -425,12 +425,9 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     }
 
     private class IsOnRouteRunable implements Runnable {
-
         public IsOnRouteRunable() {
         }
-
         public void run() {
-
             List<LatLng> list = polylineToAdd.getPoints();
             Location currentPosition = new Location("");
             currentPosition.setLatitude(location.latitude);
@@ -449,5 +446,4 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
             }
         }
     }
-
 }
