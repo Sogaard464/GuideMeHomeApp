@@ -90,6 +90,23 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         mActivity = activity;
         Log.d("DRF","Attached!");
     }
+    Callback receivedCallback = new Callback() {
+        @Override
+        public void successCallback(String channel, Object message) {
+            JSONObject jsonMessage = (JSONObject) message;
+        }
+    };
+    Callback publishCallback = new Callback() {
+        @Override
+        public void successCallback(String channel, Object response) {
+            Log.d("PUBNUB", response.toString());
+        }
+
+        @Override
+        public void errorCallback(String channel, PubnubError error) {
+            Log.e("PUBNUB", error.toString());
+        }
+    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -183,6 +200,11 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone+"route");
+        try {
+            mPubnub.subscribe(mPhone+"route",receivedCallback);
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
     }
    
     public void getUpdatedContacts(){
@@ -271,7 +293,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location newLocation) {
         location = new LatLng(newLocation.getLatitude(),newLocation.getLongitude());
-
+        sendNotification();
         if(polylineToAdd != null){
           //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
             mActivity.runOnUiThread(new IsOnRouteRunable());
@@ -305,6 +327,33 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     public void onProviderDisabled(String provider) {
 
     }
+
+    public void sendRegistrationId(String regId) {
+        mPubnub.enablePushNotificationsOnChannel(
+                mPhone+"route",
+                regId);
+    }
+
+    public void sendNotification() {
+        PnGcmMessage gcmMessage = new PnGcmMessage();
+        JSONObject jso = new JSONObject();
+        try {
+            jso.put("GCMSays", "hi");
+        } catch (JSONException e) { }
+        gcmMessage.setData(jso);
+
+        PnMessage message = new PnMessage(
+                mPubnub,
+                mPhone+"route",
+                publishCallback,
+                gcmMessage);
+        try {
+            message.publish();
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public class DrawRoutesRunnable implements Runnable {
         private List<LatLng> lines;
