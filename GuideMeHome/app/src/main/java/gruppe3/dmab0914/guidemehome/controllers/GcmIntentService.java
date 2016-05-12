@@ -5,13 +5,21 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.NotificationCompat;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Set;
+
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
+import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
 
 public class GcmIntentService extends IntentService {
 
@@ -24,28 +32,32 @@ public class GcmIntentService extends IntentService {
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
         String messageType = gcm.getMessageType(intent);
-
         if (!extras.isEmpty() && GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-            sendNotification("Received: " + extras.toString());
+            sendNotification(extras.getString("GCMSays"));
         }
         GcmBroadcastReceiver.completeWakefulIntent(intent);
     }
 
     private void sendNotification(String msg) {
-        NotificationManager mNotificationManager = (NotificationManager)
-                this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
+        Intent intent = new Intent(this, DrawRouteFragment.class);
+        intent.putExtra("Message", msg);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                intent, PendingIntent.FLAG_ONE_SHOT);
 
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setContentTitle("PubNub GCM Notification")
-                        .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(msg))
-                        .setContentText(msg);
+        Uri defaultSoundUri = RingtoneManager
+                .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(
+                this).setSmallIcon(R.drawable.ic_launcher)
+                .setContentTitle("GuideMeHome").setContentText(msg)
+                .setAutoCancel(true).setSound(defaultSoundUri)
+                .setContentIntent(pendingIntent);
 
-        mBuilder.setContentIntent(contentIntent);
-        mNotificationManager.notify(1, mBuilder.build());
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0, notificationBuilder.build());
+
     }
+
 }

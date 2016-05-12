@@ -64,6 +64,7 @@ import java.util.logging.Logger;
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
+import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 
 
@@ -175,17 +176,24 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         getRoute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
+                int contactPhone = 0;
                 if(destination.getText().length() >0 && contact.getText().length() > 0) {
                     Boolean contains = false;
+                    String phone = "";
                     for (String s: contacts) {
                         if(s.equals(contact.getText().toString())){
                             contains = true;
+                            ArrayList<Contact> contacts = ContactsController.getInstance().getContacts();
+                            for(int i = 0; i < contacts.size() || phone == ""; i++ )
+                                if (contacts.get(i).getName().equals(contact.getText().toString()))
+                                    phone = contacts.get(i).getmPhone();
                         }
                     }
                     if(contains) {
                         //TODO Subscribe to contact channel
                         if(location != null){
                             getRoute(destination.getText().toString().replace(" ", "+"), location.latitude + "," + location.longitude);
+                            sendFollowMeNotification(phone);
                         }
                         else{
                             Toast.makeText(getContext(), R.string.cannot_get_location, Toast.LENGTH_LONG).show();
@@ -197,6 +205,27 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         setupPubNub();
         return v;
     }
+
+    private void sendFollowMeNotification(String phone) {
+        PnGcmMessage gcmMessage = new PnGcmMessage();
+        JSONObject jso = new JSONObject();
+        try {
+            jso.put("GCMSays", mName + mActivity.getString(R.string.wants_to_be_guided_home));
+        } catch (JSONException e) { }
+        gcmMessage.setData(jso);
+
+        PnMessage message = new PnMessage(
+                mPubnub,
+                phone+"route",
+                publishCallback,
+                gcmMessage);
+        try {
+            message.publish();
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone+"route");
@@ -294,6 +323,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     public void onLocationChanged(Location newLocation) {
         location = new LatLng(newLocation.getLatitude(),newLocation.getLongitude());
         sendNotification();
+        //TODO remove sendNotification()
         if(polylineToAdd != null){
           //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
             mActivity.runOnUiThread(new IsOnRouteRunable());
@@ -338,7 +368,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         PnGcmMessage gcmMessage = new PnGcmMessage();
         JSONObject jso = new JSONObject();
         try {
-            jso.put("GCMSays", "hi");
+            jso.put("GCMSays", mName + " is leaving the route");
         } catch (JSONException e) { }
         gcmMessage.setData(jso);
 
@@ -491,7 +521,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 }
             }
             if(!onRoute){
-                Toast.makeText(mActivity.getBaseContext(),"Afvigelse",Toast.LENGTH_LONG).show();
+                sendNotification();
             }
         }
     }

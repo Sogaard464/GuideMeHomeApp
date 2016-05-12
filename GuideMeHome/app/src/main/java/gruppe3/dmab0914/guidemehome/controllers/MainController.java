@@ -85,7 +85,7 @@ public class MainController {
 
     }
 
-    private void register() {
+    public void register() {
         gcm = GoogleCloudMessaging.getInstance(mActivity.getBaseContext());
         try {
             regId = getRegistrationId();

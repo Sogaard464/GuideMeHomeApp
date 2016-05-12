@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         mc.setmActivity(getMainActivity());
         if (mc.isTokenValid() == true) {
             initiliaseUI();
+            mc.register();
             }
         else {
             Intent intent = new Intent(this, LoginActivity.class);

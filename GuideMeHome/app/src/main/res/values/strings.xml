@@ -36,5 +36,6 @@
     <string name="login_failed_toast">Login failed</string>
     <string name="cannot_get_location">Cannot acquire location</string>
     <string name="projectID">514664598062</string>
+    <string name="wants_to_be_guided_home">" wants to be guided home."</string>
 
 </resources>
