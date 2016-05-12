@@ -1,20 +1,31 @@
 package gruppe3.dmab0914.guidemehome.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.multidex.MultiDex;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
+import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
 import gruppe3.dmab0914.guidemehome.controllers.MainController;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
 
@@ -24,15 +35,51 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private MainController mc;
     public static MainActivity ma;
-   // @Override
-    //public void onBackPressed() {
-   //     // do nothing.
-   // }
+    @Override
+   public void onNewIntent(Intent intent) {
+       super.onNewIntent(intent);
+       Bundle bundle = intent.getExtras();
+       if (bundle != null) {
+           Set<String> keys = bundle.keySet();
+           Iterator<String> it = keys.iterator();
+           Log.e("Bundle","Dumping Intent start");
+           while (it.hasNext()) {
+               String key = it.next();
+               if(key.equals("Message")){
+                   if(bundle.getString(key).contains("wants to be guided home")){
+                       //TODO Acknowledge that you want to guide
+                       new AlertDialog.Builder(this)
+                               .setTitle("Guide friend?")
+                               .setMessage("Will you guide your friend home?")
+                               .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                   public void onClick(DialogInterface dialog, int which) {
+                                       // continue with delete
+                                   }
+                               })
+                               .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                   public void onClick(DialogInterface dialog, int which) {
+                                       // do nothing
+                                   }
+                               })
+                               .setIcon(android.R.drawable.ic_dialog_alert)
+                               .show();
 
+                   }
+               }
+               Log.e("Bundle","[" + key + "=" + bundle.get(key)+"]");
+           }
+           Log.e("Bundle","Dumping Intent end");
+       }   }
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        onNewIntent(getIntent());
         ma = this;
         mc = new MainController();
         mc.setmActivity(getMainActivity());
@@ -67,8 +114,6 @@ public class MainActivity extends AppCompatActivity {
         finish();
         startActivity(i);
     }
-
-
 
 
     @Override
@@ -121,6 +166,5 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
 }
