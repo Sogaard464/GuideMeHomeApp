@@ -28,6 +28,7 @@ import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
 import gruppe3.dmab0914.guidemehome.controllers.MainController;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
+import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 
 public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
@@ -35,30 +36,31 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private MainController mc;
     public static MainActivity ma;
+    private Bundle pushBundle;
     @Override
    public void onNewIntent(Intent intent) {
        super.onNewIntent(intent);
-       Bundle bundle = intent.getExtras();
-       if (bundle != null) {
-           Set<String> keys = bundle.keySet();
+       pushBundle = intent.getExtras();
+       if (pushBundle != null) {
+           Set<String> keys = pushBundle.keySet();
            Iterator<String> it = keys.iterator();
            Log.e("Bundle","Dumping Intent start");
            while (it.hasNext()) {
-               String key = it.next();
+               final String key = it.next();
                if(key.equals("Message")){
-                   if(bundle.getString(key).contains("wants to be guided home")){
+                   if(pushBundle.getString(key).contains("wants to be guided home")){
                        //TODO Acknowledge that you want to guide
                        new AlertDialog.Builder(this)
                                .setTitle("Guide friend?")
                                .setMessage("Will you guide your friend home?")
                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                    public void onClick(DialogInterface dialog, int which) {
-                                       // continue with delete
+                                       DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+                                        drf.drawContactRoute(pushBundle.getString("Arg2"));
                                    }
                                })
                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                    public void onClick(DialogInterface dialog, int which) {
-                                       // do nothing
                                    }
                                })
                                .setIcon(android.R.drawable.ic_dialog_alert)
@@ -66,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
                    }
                }
-               Log.e("Bundle","[" + key + "=" + bundle.get(key)+"]");
+               Log.e("Bundle","[" + key + "=" + pushBundle.get(key)+"]");
            }
            Log.e("Bundle","Dumping Intent end");
        }   }

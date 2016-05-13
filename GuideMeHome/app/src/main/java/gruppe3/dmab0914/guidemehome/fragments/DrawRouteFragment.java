@@ -74,6 +74,8 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private static final String TAG = "DRF";
     private String guidePhone;
     private LatLng location;
+    private String destinationString;
+    private String locationString;
     private GoogleMap mGoogleMap;
     private String mPhone;
     private String mName;
@@ -84,7 +86,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private String[] contacts;
     private ArrayAdapter<String> adapter;
     private AutoCompleteTextView contact;
-
+private String urlString;
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -192,7 +194,9 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                     if(contains) {
                         //TODO Subscribe to contact channel
                         if(location != null){
-                            getRoute(destination.getText().toString().replace(" ", "+"), location.latitude + "," + location.longitude);
+                            destinationString = destination.getText().toString().replace(" ", "+");
+                            locationString = location.latitude + "," + location.longitude;
+                            getRoute(destinationString, locationString);
                             sendFollowMeNotification(phone);
                         }
                         else{
@@ -212,6 +216,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         JSONObject jso = new JSONObject();
         try {
             jso.put("GCMSays", mName + mActivity.getString(R.string.wants_to_be_guided_home));
+            jso.put("Arg2",locationString + ";" + destinationString);
         } catch (JSONException e) { }
         gcmMessage.setData(jso);
 
@@ -368,6 +373,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         JSONObject jso = new JSONObject();
         try {
             jso.put("GCMSays", mName + " is leaving the route");
+            jso.put("Arg2",location);
         } catch (JSONException e) { }
         gcmMessage.setData(jso);
 
@@ -411,7 +417,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         @Override
         protected String doInBackground(String... params) {
             String requestMethod;
-            String urlString;
             requestMethod = "GET";
             urlString = "https://maps.googleapis.com/maps/api/directions/json?origin="+params[1]+"&destination="+params[0]+"&mode=walking";
             int code = 0;
@@ -476,7 +481,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 JSONArray steps = routes.getJSONObject(0).getJSONArray("legs")
                         .getJSONObject(0).getJSONArray("steps");
 
-                List<LatLng> lines = new ArrayList<LatLng>();
+                List<LatLng> lines = new ArrayList<>();
 
                 for(int i=0; i < steps.length(); i++) {
                     String polyline = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
@@ -505,6 +510,11 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
             }
             return String.valueOf(code);
         }
+    }
+
+    public void drawContactRoute(String route){
+        String[] routeArray = route.split(";");
+        getRoute(routeArray[1],routeArray[0]);
     }
 
     private class IsOnRouteRunable implements Runnable {

@@ -35,14 +35,15 @@ public class GcmIntentService extends IntentService {
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
         String messageType = gcm.getMessageType(intent);
         if (!extras.isEmpty() && GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-            sendNotification(extras.getString("GCMSays"));
+            sendNotification(extras.getString("GCMSays"),extras.getString("Arg2"));
         }
         GcmBroadcastReceiver.completeWakefulIntent(intent);
     }
 
-    private void sendNotification(String msg) {
+    private void sendNotification(String msg,String arg2) {
     Intent intent = new Intent(this, MainActivity.class);
     intent.putExtra("Message", msg);
+        intent.putExtra("Arg2",arg2);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
             PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT);
