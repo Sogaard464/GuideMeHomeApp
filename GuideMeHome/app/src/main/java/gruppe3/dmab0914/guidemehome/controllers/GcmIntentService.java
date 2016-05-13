@@ -41,6 +41,7 @@ public class GcmIntentService extends IntentService {
     }
 
     private void sendNotification(String msg,String arg2) {
+        if(MainActivity.getMainActivity().getmForeground() == false && msg.contains("wants to be guided home")){
     Intent intent = new Intent(this, MainActivity.class);
     intent.putExtra("Message", msg);
         intent.putExtra("Arg2",arg2);
@@ -60,5 +61,24 @@ public class GcmIntentService extends IntentService {
 
     notificationManager.notify(0, notification);
 }
+    else if(msg.contains("is leaving the route")){
+            NotificationManager mNotificationManager = (NotificationManager)
+                    this.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                    new Intent(this, MainActivity.class), 0);
+
+            NotificationCompat.Builder mBuilder =
+                    (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.drawable.ic_launcher)
+                            .setContentTitle("GuideMeHome")
+                            .setStyle(new NotificationCompat.BigTextStyle()
+                                    .bigText(msg))
+                            .setContentText(msg);
+
+            mBuilder.setContentIntent(contentIntent);
+            mNotificationManager.notify(1, mBuilder.build());
+        }
+    }
 
     }

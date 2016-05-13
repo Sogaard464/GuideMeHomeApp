@@ -276,7 +276,18 @@ public class ContactsController {
         // show it
         alertDialog.show();
     }
-
+    public void showAcceptDialog(JSONObject jsonMessage){
+        mActivity.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
+    }
+    public void acceptedRunnable(JSONObject jsonMessage){
+        mActivity.runOnUiThread(new AcceptedRunable(jsonMessage));
+            }
+    public void shareRunnable(JSONObject jsonMessage){
+        mActivity.runOnUiThread(new ShareRunable(jsonMessage));
+    }
+    public void deleteRunnable(JSONObject jsonMessage){
+        mActivity.runOnUiThread(new DeleteRunable(jsonMessage));
+    }
     public class ShowAcceptDialogRunnable implements Runnable {
         private JSONObject jsonMessage;
 
@@ -350,7 +361,6 @@ public class ContactsController {
         public AcceptedRunable(Object message) {
             this.jsonMessage = (JSONObject) message;
         }
-
         public void run() {
             Contact c = null;
             try {

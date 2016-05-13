@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private MainController mc;
     public static MainActivity ma;
+    private Boolean mForeground;
     private Bundle pushBundle;
     @Override
    public void onNewIntent(Intent intent) {
@@ -95,6 +96,16 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
             }
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        mForeground = true;
+    }
+    @Override
+    protected void onPause(){
+        super.onPause();
+        mForeground = false;
     }
 
     @Override
@@ -172,4 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public Boolean getmForeground() {
+        return mForeground;
+    }
 }

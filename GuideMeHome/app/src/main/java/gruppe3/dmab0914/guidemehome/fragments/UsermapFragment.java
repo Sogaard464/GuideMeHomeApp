@@ -123,7 +123,7 @@ public class UsermapFragment extends Fragment implements LocationListener {
         mPrefs = getContext().getSharedPreferences("user",0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
-        mMyChannel = mPhone;
+        mMyChannel = mPhone+"-map";
         mMapView = (MapView) v.findViewById(R.id.location_map);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();
@@ -182,20 +182,23 @@ public class UsermapFragment extends Fragment implements LocationListener {
     }
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
-        mPubnub.setUUID(mPhone+"map");
+        mPubnub.setUUID(mPhone+"-map");
         Gson gson = new Gson();
         ArrayList<Contact> contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
         if(contacts != null) {
             for (Contact c : contacts) {
                 try {
-                    mPubnub.subscribe(c.getmPhone(), receivedCallback);
+                    mPubnub.subscribe(c.getmPhone()+"-map", receivedCallback);
                 } catch (PubnubException e) {
                     e.printStackTrace();
                 }
             }
         }
     }
+    public void drawRouteRunnable( LatLng mLatLng, String phone, String name){
+        mActivity.runOnUiThread(new DrawRoutesRunnable(mLatLng,phone,name));
 
+    }
     private void updatePolyline(LatLng loc, String phone) {
         PolylineOptions po = polylines.get(phone);
         if (po == null){

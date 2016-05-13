@@ -66,6 +66,7 @@ import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
 import gruppe3.dmab0914.guidemehome.models.Contact;
+import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
 
 public class DrawRouteFragment extends Fragment implements LocationListener {
@@ -85,6 +86,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private Polyline polylineToAdd;
     private String[] contacts;
     private ArrayAdapter<String> adapter;
+    private JSONObject jsonMessage;
     private AutoCompleteTextView contact;
 private String urlString;
     @Override
@@ -96,7 +98,27 @@ private String urlString;
     Callback receivedCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object message) {
-            JSONObject jsonMessage = (JSONObject) message;
+            jsonMessage = (JSONObject) message;
+            try {
+                jsonMessage = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
+                String msg = jsonMessage.getString("GCMSays");
+                if(msg.contains("wants to be guided home")){
+                    showAlertDialogTask alertDialogTask = new showAlertDialogTask();
+
+                    try {
+                        alertDialogTask.execute(jsonMessage.getString("Arg2")).get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+                } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         }
     };
     Callback publishCallback = new Callback() {
@@ -394,6 +416,17 @@ private String urlString;
 
     }
 
+    public void showAlertDialog(String arg2) {
+        showAlertDialogTask alertDialogTask = new showAlertDialogTask();
+        try {
+            alertDialogTask.execute(arg2).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public class DrawRoutesRunnable implements Runnable {
         private List<LatLng> lines;
@@ -538,5 +571,37 @@ private String urlString;
                 sendNotification();
             }
         }
+    }
+    private class showAlertDialogTask extends AsyncTask<String, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(final String... params) {
+            final String par = params[0];
+
+            return par;
+        }
+        @Override
+        protected void onPostExecute(final String par){
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Guide friend?")
+                    .setMessage("Will you guide your friend home?")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                                drawContactRoute(par);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
+
+
     }
 }
