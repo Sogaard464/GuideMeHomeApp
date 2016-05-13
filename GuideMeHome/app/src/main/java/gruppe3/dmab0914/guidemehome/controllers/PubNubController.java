@@ -3,34 +3,44 @@ package gruppe3.dmab0914.guidemehome.controllers;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.pubnub.api.Callback;
+import com.pubnub.api.PnGcmMessage;
+import com.pubnub.api.PnMessage;
 import com.pubnub.api.Pubnub;
+import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
 import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
+import gruppe3.dmab0914.guidemehome.models.Contact;
 
 /**
  * Created by Lasse on 13-05-2016.
  */
 public class PubNubController {
+
     private Pubnub mPubnub;
     private String mRouteChannel;
-    private String mPrivateChannel;
     private String mMapChannel;
     private String mContactChannel;
     private String mPhone;
-    private String mName;
     private Context c;
     private SharedPreferences mPrefs;
+    private String mGuidePhone;
+    private String mName;
 
     private static PubNubController ourInstance = new PubNubController();
 
@@ -42,20 +52,43 @@ public class PubNubController {
         mPrefs = c.getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
-        mContactChannel = mPhone + "-private";
+
+        mContactChannel = mPhone + "-contact";
         mMapChannel = mPhone + "-map";
         mRouteChannel = mPhone + "-route";
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
         mPubnub.setUUID(mPhone);
         try {
+            Gson gson = new Gson();
+            ArrayList<Contact> contacts = gson.fromJson(mPrefs.getString("contacts",""),new TypeToken<ArrayList<Contact>>() {}.getType());
+            if(contacts != null) {
+                for (Contact c : contacts) {
+                    try {
+                        mPubnub.subscribe(c.getmPhone()+"-map", mapReceivedCallback);
+                    } catch (PubnubException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             mPubnub.subscribe(mRouteChannel, routeReceivedCallback);
-            mPubnub.subscribe(mMapChannel, mapReceivedCallback);
+            //mPubnub.subscribe(mMapChannel, mapReceivedCallback);
             mPubnub.subscribe(mContactChannel, contactReceivedCallback);
 
         } catch (PubnubException e) {
             e.printStackTrace();
         }
     }
+    Callback publishCallback = new Callback() {
+        @Override
+        public void successCallback(String channel, Object response) {
+            Log.d("PUBNUB", response.toString());
+        }
+
+        @Override
+        public void errorCallback(String channel, PubnubError error) {
+            Log.e("PUBNUB", error.toString());
+        }
+    };
     Callback contactReceivedCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object message) {
@@ -117,9 +150,114 @@ public class PubNubController {
 
         }
     };
-    public void subscribe(String channel, String callback){
+    public void subscribe(String phone, String channel){
+        switch (channel){
+            case "map":
+                try {
+                    mPubnub.subscribe(mMapChannel,mapReceivedCallback);
+                } catch (PubnubException e) {
+                    e.printStackTrace();
+                }
+            case "contact":
+                try {
+                    mPubnub.subscribe(mContactChannel,contactReceivedCallback);
+                } catch (PubnubException e) {
+                    e.printStackTrace();
+                }
+            case "route":
+                try {
+                    mPubnub.subscribe(mRouteChannel,routeReceivedCallback);
+                } catch (PubnubException e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+    public void unSubscribe(String phone, String channel){
+        switch (channel){
+            case "map":
+                    mPubnub.unsubscribe(phone+"-"+channel);
+            case "contact":
+                    mPubnub.unsubscribe(phone+"-"+channel);
+            case "route":
+                    mPubnub.unsubscribe(phone+"-"+channel);
 
+        }
     }
 
+    public void publish(String channel, JSONObject message, String phone){
+        if(phone.isEmpty()) {
+            switch (channel) {
+                case "map":
+                    mPubnub.publish(mMapChannel, message, publishCallback);
+                case "contact":
+                    mPubnub.publish(mContactChannel, message, publishCallback);
+                case "route":
+                    mPubnub.publish(mRouteChannel, message, publishCallback);
+
+            }
+        }
+        else{
+            switch (channel){
+                case "map":
+                    mPubnub.publish(phone+"-"+channel, message,publishCallback);
+                case "contact":
+                    mPubnub.publish(phone+"-"+channel, message,publishCallback);
+                case "route":
+                    mPubnub.publish(phone+"-"+channel, message,publishCallback);
+            }
+
+        }
+    }
+    public void sendFollowMeNotification(String phone,String locationString,String destinationString) {
+        mGuidePhone = phone;
+        PnGcmMessage gcmMessage = new PnGcmMessage();
+        JSONObject jso = new JSONObject();
+        try {
+            jso.put("GCMSays", mName + MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home));
+            jso.put("Arg2",locationString + ";" + destinationString);
+        } catch (JSONException e) { }
+        gcmMessage.setData(jso);
+        PnMessage message = new PnMessage(
+                mPubnub,
+                mGuidePhone+"-route",
+                publishCallback,
+                gcmMessage);
+        try {
+            message.publish();
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendLeftRouteNotification(LatLng location) {
+        PnGcmMessage gcmMessage = new PnGcmMessage();
+        JSONObject jso = new JSONObject();
+        try {
+            jso.put("GCMSays", mName + " is leaving the route");
+            jso.put("Arg2",location);
+        } catch (JSONException e) { }
+        gcmMessage.setData(jso);
+
+        PnMessage message = new PnMessage(
+                mPubnub,
+                mGuidePhone+"-route",
+                publishCallback,
+                gcmMessage);
+        try {
+            message.publish();
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
+    }
+    public void sendRegistrationId(String regId) {
+        mPubnub.enablePushNotificationsOnChannel(
+                mPhone+"-route",
+                regId);
+    }
+
+    public void disablePushNotificationsOnChannel(String regId) {
+        mPubnub.disablePushNotificationsOnChannel(mPhone+"-route", regId);
+
+    }
 }
 

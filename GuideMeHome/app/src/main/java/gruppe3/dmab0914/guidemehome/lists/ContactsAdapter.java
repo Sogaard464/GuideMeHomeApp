@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
+import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 import gruppe3.dmab0914.guidemehome.fragments.ContactsFragment;
 import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
@@ -44,7 +45,6 @@ public class ContactsAdapter extends
         // for any view that will be set as you render a row
         public TextView nameTextView;
         public TextView phoneTextView;
-
         public Switch visibleSwitch;
         public Switch showSwitch;
 
@@ -107,16 +107,11 @@ public class ContactsAdapter extends
             @Override
             public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
                 if(isChecked){
-                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                    umf.subscribe(phone.getText().toString());
-
+                    PubNubController.getInstance().subscribe(phone.getText().toString(),"map");
                 }
                 else{
-                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                    umf.unsubscribe(phone.getText().toString());
+                    PubNubController.getInstance().unSubscribe(phone.getText().toString(),"map");
                 }
-
-
                 String token = mPrefs.getString("token", "");
                 String myPhone = mPrefs.getString("phone","");
                 RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+isChecked);
@@ -136,12 +131,10 @@ public class ContactsAdapter extends
             @Override
             public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
                 if(isChecked){
-                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                    umf.subscribe(phone.getText().toString());
+                    PubNubController.getInstance().subscribe(phone.getText().toString(),"map");
                 }
                 else{
-                    UsermapFragment umf = (UsermapFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                    umf.unsubscribe(phone.getText().toString());
+                    PubNubController.getInstance().unSubscribe(phone.getText().toString(),"map");
                 }
                 ContactsFragment cf = (ContactsFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
                 ContactsController cc = ContactsController.getInstance();

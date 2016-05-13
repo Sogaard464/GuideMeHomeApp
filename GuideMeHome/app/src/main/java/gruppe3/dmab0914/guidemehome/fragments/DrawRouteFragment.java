@@ -65,6 +65,7 @@ import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
+import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
@@ -82,7 +83,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private String mName;
     private SharedPreferences mPrefs;
     private Activity mActivity;
-    private Pubnub mPubnub;
     private Polyline polylineToAdd;
     private String[] contacts;
     private ArrayAdapter<String> adapter;
@@ -95,43 +95,7 @@ private String urlString;
         mActivity = activity;
         Log.d("DRF","Attached!");
     }
-    Callback receivedCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object message) {
-            jsonMessage = (JSONObject) message;
-            try {
-                jsonMessage = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
-                String msg = jsonMessage.getString("GCMSays");
-                if(msg.contains("wants to be guided home")){
-                    showAlertDialogTask alertDialogTask = new showAlertDialogTask();
 
-                    try {
-                        alertDialogTask.execute(jsonMessage.getString("Arg2")).get();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-
-
-                }
-                } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        }
-    };
-    Callback publishCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object response) {
-            Log.d("PUBNUB", response.toString());
-        }
-
-        @Override
-        public void errorCallback(String channel, PubnubError error) {
-            Log.e("PUBNUB", error.toString());
-        }
-    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -219,7 +183,7 @@ private String urlString;
                             destinationString = destination.getText().toString().replace(" ", "+");
                             locationString = location.latitude + "," + location.longitude;
                             getRoute(destinationString, locationString);
-                            sendFollowMeNotification(phone);
+                            PubNubController.getInstance().sendFollowMeNotification(phone,locationString,destinationString);
                         }
                         else{
                             Toast.makeText(getContext(), R.string.cannot_get_location, Toast.LENGTH_LONG).show();
@@ -228,41 +192,9 @@ private String urlString;
                 }
             }
         });
-        setupPubNub();
         return v;
     }
 
-    private void sendFollowMeNotification(String phone) {
-        guidePhone = phone;
-        PnGcmMessage gcmMessage = new PnGcmMessage();
-        JSONObject jso = new JSONObject();
-        try {
-            jso.put("GCMSays", mName + mActivity.getString(R.string.wants_to_be_guided_home));
-            jso.put("Arg2",locationString + ";" + destinationString);
-        } catch (JSONException e) { }
-        gcmMessage.setData(jso);
-
-        PnMessage message = new PnMessage(
-                mPubnub,
-                guidePhone+"-route",
-                publishCallback,
-                gcmMessage);
-        try {
-            message.publish();
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void setupPubNub() {
-        mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
-        mPubnub.setUUID(mPhone+"-route");
-        try {
-            mPubnub.subscribe(mPhone+"-route",receivedCallback);
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
-    }
    
     public void getUpdatedContacts(){
         ContactsController cc = ContactsController.getInstance();
@@ -320,33 +252,26 @@ private String urlString;
 
         return poly;
     }
-
-
     @Override
     public void onResume() {
         super.onResume();
         mMapView.onResume();
     }
-
-
     @Override
     public void onPause() {
         super.onPause();
         mMapView.onPause();
     }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
     }
-
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
     }
-
     @Override
     public void onLocationChanged(Location newLocation) {
         location = new LatLng(newLocation.getLatitude(),newLocation.getLongitude());
@@ -355,18 +280,6 @@ private String urlString;
             mActivity.runOnUiThread(new IsOnRouteRunable());
 
         }
-        /*IsOnRouteTask isOnRouteTaskObject = new IsOnRouteTask();
-        Boolean isLost = false;
-        try {
-            isLost = isOnRouteTaskObject.execute().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        if(isLost){
-            //TODO Send message to observer
-        }*/
     }
 
     @Override
@@ -383,39 +296,6 @@ private String urlString;
     public void onProviderDisabled(String provider) {
 
     }
-
-    public void sendRegistrationId(String regId) {
-        mPubnub.enablePushNotificationsOnChannel(
-                mPhone+"-route",
-                regId);
-    }
-
-    public void sendNotification() {
-        PnGcmMessage gcmMessage = new PnGcmMessage();
-        JSONObject jso = new JSONObject();
-        try {
-            jso.put("GCMSays", mName + " is leaving the route");
-            jso.put("Arg2",location);
-        } catch (JSONException e) { }
-        gcmMessage.setData(jso);
-
-        PnMessage message = new PnMessage(
-                mPubnub,
-                guidePhone+"-route",
-                publishCallback,
-                gcmMessage);
-        try {
-            message.publish();
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void disablePushNotificationsOnChannel(String regId) {
-        mPubnub.disablePushNotificationsOnChannel(mPhone+"-route", regId);
-
-    }
-
     public void showAlertDialog(String arg2) {
         showAlertDialogTask alertDialogTask = new showAlertDialogTask();
         try {
@@ -426,8 +306,6 @@ private String urlString;
             e.printStackTrace();
         }
     }
-
-
     public class DrawRoutesRunnable implements Runnable {
         private List<LatLng> lines;
         public DrawRoutesRunnable(List<LatLng> lines) {
@@ -568,10 +446,11 @@ private String urlString;
                 }
             }
             if(!onRoute){
-                sendNotification();
+                PubNubController.getInstance().sendLeftRouteNotification(location);
             }
         }
     }
+
     private class showAlertDialogTask extends AsyncTask<String, String, String> {
         @Override
         protected void onPreExecute() {

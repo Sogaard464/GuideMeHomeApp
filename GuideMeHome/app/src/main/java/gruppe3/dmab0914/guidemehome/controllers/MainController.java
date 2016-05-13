@@ -120,10 +120,8 @@ public class MainController {
                     }
                     regId = gcm.register(mActivity.getString(R.string.projectID));
                     msg = "Device registered, registration ID: " + regId;
-                    DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
 
-                    drf.sendRegistrationId(regId);
-
+                    PubNubController.getInstance().sendRegistrationId(regId);
                     storeRegistrationId(regId);
                     Log.i("GCM", msg);
                 } catch (Exception ex) {
@@ -148,10 +146,8 @@ public class MainController {
 
                     // Remove Registration ID from memory
                     removeRegistrationId();
-                    DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-
-                    drf.disablePushNotificationsOnChannel(regId);
                     // Disable Push Notification
+                    PubNubController.getInstance().disablePushNotificationsOnChannel(regId);
                 } catch (Exception e) { }
                 return null;
             }

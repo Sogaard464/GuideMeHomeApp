@@ -17,9 +17,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.pubnub.api.Callback;
-import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
-import com.pubnub.api.PubnubException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,8 +39,6 @@ import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
-import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
-import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 import gruppe3.dmab0914.guidemehome.lists.ContactsAdapter;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.vos.RequestModel;
@@ -58,8 +54,7 @@ public class ContactsController {
     }
 
     private ArrayList<Contact> contacts;
-    private Pubnub mPubnub;
-    private String mMyChannel;
+    private String mChannel = "contact";
     private String mPhone;
     private String mName;
     private SharedPreferences mPrefs;
@@ -88,7 +83,6 @@ public class ContactsController {
         mPrefs = c.getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
-        mMyChannel = mPhone + "-private";
         Gson gson = new Gson();
         // Initialize contacts
         contacts = gson.fromJson(mPrefs.getString("contacts",""), new TypeToken<ArrayList<Contact>>() {}.getType());
@@ -103,8 +97,6 @@ public class ContactsController {
         });
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
-
-        setupPubNub();
     }
     public void showAddContactDialog() {
         // custom dialog
@@ -156,7 +148,7 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        mPubnub.publish(phone + "-private", message, publishCallback);
+        PubNubController.getInstance().publish(mChannel,message, "");
     }
 
     private void sendDeleteMessage(String phone) {
@@ -169,7 +161,7 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        mPubnub.publish(phone + "-private", message, publishCallback);
+        PubNubController.getInstance().publish(mChannel,message, "");
     }
 
     public void sendShareMessage(String phone,String name,boolean share) {
@@ -183,57 +175,11 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        mPubnub.publish(phone + "-private", message, publishCallback);
+        PubNubController.getInstance().publish(mChannel,message, "");
     }
-
-    private void setupPubNub() {
-        mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
-        mPubnub.setUUID(mPhone);
-        try {
-            mPubnub.subscribe(mMyChannel, receivedCallback);
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     public void setmActivity(Activity mActivity) {
         this.mActivity = mActivity;
     }
-
-    Callback publishCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object response) {
-            Log.d("PUBNUB", response.toString());
-        }
-
-        @Override
-        public void errorCallback(String channel, PubnubError error) {
-            Log.e("PUBNUB", error.toString());
-        }
-    };
-    Callback receivedCallback = new Callback() {
-        @Override
-        public void successCallback(String channel, Object message) {
-            JSONObject jsonMessage;
-            jsonMessage = (JSONObject) message;
-            Activity a = mActivity;
-            try {
-                if (jsonMessage.getString("command").equals("add")) {
-                    a.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
-                } else if (jsonMessage.getString("command").equals("accepted")) {
-                    a.runOnUiThread(new AcceptedRunable(jsonMessage));
-                }else if (jsonMessage.getString("command").equals("share")) {
-                    a.runOnUiThread(new ShareRunable(jsonMessage));
-                }else if (jsonMessage.getString("command").equals("delete")) {
-                    a.runOnUiThread(new DeleteRunable(jsonMessage));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-
     public void DeleteContact(final int position) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
                 context);
@@ -249,9 +195,8 @@ public class ContactsController {
                         sendDeleteMessage(c.getmPhone());
                         contacts.remove(c);
                         adapter.notifyItemRemoved(position);
+                        PubNubController.getInstance().unSubscribe(c.getmPhone(),"map");
 
-                        UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                        umf.unsubscribe(c.getmPhone());
                         String token = mPrefs.getString("token", "");
                         RequestModel rm = new RequestModel(token, mPhone + ":"+ c.getmPhone());
                         DeletePostTask deleteTaskObject = new DeletePostTask();
@@ -321,9 +266,8 @@ public class ContactsController {
                         adapter.notifyItemInserted(0);
 
                         MainActivity a = MainActivity.getMainActivity();
+                        PubNubController.getInstance().subscribe(jsonMessage.getString("phone"),"map");
 
-                        UsermapFragment umf = (UsermapFragment)a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                        umf.subscribe(jsonMessage.getString("phone"));
                         JSONObject message = new JSONObject();
                         try {
                             message.put("command", "accepted");
@@ -332,7 +276,7 @@ public class ContactsController {
                         } catch (JSONException e) {
                             Log.e("PUBNUB", e.toString());
                         }
-                        mPubnub.publish(jsonMessage.getString("phone") + "-private", message, publishCallback);
+                        PubNubController.getInstance().publish(mChannel,message,jsonMessage.getString("phone"));
                         String token = mPrefs.getString("token", "");
                         RequestModel rm = new RequestModel(token,mPhone+":"+jsonMessage.getString("phone"));
                         ContactPostTask postTaskObject = new ContactPostTask();
@@ -354,7 +298,6 @@ public class ContactsController {
             dialog.show();
         }
     }
-
     private class AcceptedRunable implements Runnable {
         private JSONObject jsonMessage;
 
@@ -369,14 +312,13 @@ public class ContactsController {
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
                 MainActivity a = MainActivity.getMainActivity();
-                UsermapFragment umf = (UsermapFragment) a.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                umf.subscribe(jsonMessage.getString("phone"));
+                PubNubController.getInstance().subscribe(jsonMessage.getString("phone"),"map");
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     }
-
     private class ShareRunable implements Runnable {
         private JSONObject jsonMessage;
         public ShareRunable(Object message) {
@@ -391,14 +333,13 @@ public class ContactsController {
                     if(contacts.get(i).getmPhone().equals(phone)){
                         contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
                         adapter.notifyItemChanged(i);
-                        UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
                         if(jsonMessage.getBoolean("share")){
-                            umf.subscribe(phone);
+                            PubNubController.getInstance().subscribe(phone,"map");
                         }
                         else{
-                            umf.unsubscribe(phone);
+                            PubNubController.getInstance().unSubscribe(phone,"map");
                         }
-                        umf.unsubscribe(phone);
+                        PubNubController.getInstance().unSubscribe(phone,"map");
                         found = true;
                     }
                 }
@@ -407,7 +348,6 @@ public class ContactsController {
             }
         }
     }
-
     private class DeleteRunable implements Runnable {
         private JSONObject jsonMessage;
         public DeleteRunable(Object message) {
@@ -422,9 +362,8 @@ public class ContactsController {
                     if(contacts.get(i).getmPhone().equals(phone)){
                         contacts.remove(i);
                         adapter.notifyItemRemoved(i);
+                        PubNubController.getInstance().unSubscribe(phone,"map");
 
-                        UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
-                        umf.unsubscribe(phone);
                         found = true;
                     }
                 }
