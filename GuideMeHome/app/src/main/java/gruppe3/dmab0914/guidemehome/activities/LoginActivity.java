@@ -4,14 +4,11 @@ package gruppe3.dmab0914.guidemehome.activities;
  * Created by Seagaard on 04-04-2016.
  */
 
-import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-
-import android.content.Intent;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -36,17 +33,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import butterknife.ButterKnife;
 import butterknife.Bind;
+import butterknife.ButterKnife;
+import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.controllers.LoginController;
 import gruppe3.dmab0914.guidemehome.models.LoginUser;
-import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.models.User;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
-    private LoginController lc;
     @Bind(R.id.input_phone)
     EditText _phoneText;
     @Bind(R.id.input_password)
@@ -55,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
     Button _loginButton;
     @Bind(R.id.link_signup)
     TextView _signupLink;
+    private LoginController lc;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,11 +99,10 @@ public class LoginActivity extends AppCompatActivity {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-        if(code.equals("200")){
+        if (code.equals("200")) {
             onLoginSuccess();
 
-        }
-        else{
+        } else {
             onLoginFailed();
         }
     }
@@ -130,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void onLoginSuccess() {
         _loginButton.setEnabled(true);
-        setResult(1,null);
+        setResult(1, null);
         finish();
     }
 
@@ -208,7 +204,7 @@ public class LoginActivity extends AppCompatActivity {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-               while(code == 0 && retries <= 50){
+                while (code == 0 && retries <= 50) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
@@ -219,8 +215,7 @@ public class LoginActivity extends AppCompatActivity {
                         } else if (code == 500) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                     }
                 }
@@ -233,14 +228,14 @@ public class LoginActivity extends AppCompatActivity {
                     response.append('\r');
                 }
                 rd.close();
-                User u = gson.fromJson(response.toString(),User.class);
-                SharedPreferences mPrefs = getSharedPreferences("user",MODE_PRIVATE);
+                User u = gson.fromJson(response.toString(), User.class);
+                SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.clear();
                 prefsEditor.putString("username", u.getName());
                 prefsEditor.putString("phone", u.getPhone());
                 prefsEditor.putString("token", u.getToken());
-                prefsEditor.putString("contacts",gson.toJson(u.getContacts()));
+                prefsEditor.putString("contacts", gson.toJson(u.getContacts()));
                 prefsEditor.commit();
 
             } catch (SocketTimeoutException ex) {

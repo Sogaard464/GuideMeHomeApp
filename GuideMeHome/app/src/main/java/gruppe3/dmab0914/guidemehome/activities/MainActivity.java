@@ -1,10 +1,8 @@
 package gruppe3.dmab0914.guidemehome.activities;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -24,55 +22,59 @@ import java.util.Iterator;
 import java.util.Set;
 
 import gruppe3.dmab0914.guidemehome.R;
-import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
-import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
 import gruppe3.dmab0914.guidemehome.controllers.MainController;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
-import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 
 public class MainActivity extends AppCompatActivity {
+    public static MainActivity ma;
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private MainController mc;
-    public static MainActivity ma;
     private Boolean mForeground;
     private Bundle pushBundle;
-    @Override
-   public void onNewIntent(Intent intent) {
-       super.onNewIntent(intent);
-       pushBundle = intent.getExtras();
-       if (pushBundle != null) {
-           Set<String> keys = pushBundle.keySet();
-           Iterator<String> it = keys.iterator();
-           Log.e("Bundle","Dumping Intent start");
-           while (it.hasNext()) {
-               final String key = it.next();
-               if(key.equals("Message")){
-                   if(pushBundle.getString(key).contains("wants to be guided home")){
-                       //TODO Acknowledge that you want to guide
-                       new AlertDialog.Builder(this)
-                               .setTitle("Guide friend?")
-                               .setMessage("Will you guide your friend home?")
-                               .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                   public void onClick(DialogInterface dialog, int which) {
-                                       DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                                        drf.drawContactRoute(pushBundle.getString("Arg2"));
-                                   }
-                               })
-                               .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                   public void onClick(DialogInterface dialog, int which) {
-                                   }
-                               })
-                               .setIcon(android.R.drawable.ic_dialog_alert)
-                               .show();
 
-                   }
-               }
-               Log.e("Bundle","[" + key + "=" + pushBundle.get(key)+"]");
-           }
-           Log.e("Bundle","Dumping Intent end");
-       }   }
+    public static MainActivity getMainActivity() {
+        return ma;
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        pushBundle = intent.getExtras();
+        if (pushBundle != null) {
+            Set<String> keys = pushBundle.keySet();
+            Iterator<String> it = keys.iterator();
+            Log.e("Bundle", "Dumping Intent start");
+            while (it.hasNext()) {
+                final String key = it.next();
+                if (key.equals("Message")) {
+                    if (pushBundle.getString(key).contains("wants to be guided home")) {
+                        //TODO Acknowledge that you want to guide
+                        new AlertDialog.Builder(this)
+                                .setTitle("Guide friend?")
+                                .setMessage("Will you guide your friend home?")
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+                                        drf.drawContactRoute(pushBundle.getString("Arg2"));
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+
+                    }
+                }
+                Log.e("Bundle", "[" + key + "=" + pushBundle.get(key) + "]");
+            }
+            Log.e("Bundle", "Dumping Intent end");
+        }
+    }
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -80,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         MultiDex.install(getBaseContext());
         MultiDex.install(this);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,19 +94,20 @@ public class MainActivity extends AppCompatActivity {
         if (mc.isTokenValid() == true) {
             initiliaseUI();
             mc.register();
-            }
-        else {
+        } else {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
-            }
+        }
     }
+
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
         mForeground = true;
     }
+
     @Override
-    protected void onPause(){
+    protected void onPause() {
         super.onPause();
         mForeground = false;
     }
@@ -114,9 +118,6 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-    public static MainActivity getMainActivity(){
-        return ma;
-    }
 
     public void logoutMethod(MenuItem mi) {
         Toast.makeText(getBaseContext(), R.string.logout, Toast.LENGTH_LONG).show();
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         prefsEditor.commit();
-        Intent i= new Intent(MainActivity.this, MainActivity.class);
+        Intent i = new Intent(MainActivity.this, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         finish();
         startActivity(i);
@@ -150,9 +151,9 @@ public class MainActivity extends AppCompatActivity {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageSelected(int arg0) {
-                if(arg0 == 2){
-                       DrawRouteFragment drf = (DrawRouteFragment) getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
-                       drf.getUpdatedContacts();
+                if (arg0 == 2) {
+                    DrawRouteFragment drf = (DrawRouteFragment) getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+                    drf.getUpdatedContacts();
                 }
             }
 
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        mc.setupViewPager(viewPager,getSupportFragmentManager());
+        mc.setupViewPager(viewPager, getSupportFragmentManager());
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 

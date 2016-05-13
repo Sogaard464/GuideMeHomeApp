@@ -8,11 +8,12 @@ public class LoginUser {
     private String mPhone;
     private String mPassword;
 
-    public LoginUser(String name, String phone, String password){
+    public LoginUser(String name, String phone, String password) {
         mName = name;
         mPhone = phone;
         mPassword = password;
     }
+
     public String getName() {
         return mName;
     }

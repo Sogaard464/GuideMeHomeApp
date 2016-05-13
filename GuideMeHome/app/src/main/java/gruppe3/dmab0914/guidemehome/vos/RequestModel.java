@@ -5,7 +5,7 @@ public class RequestModel {
     private String mToken;
     private Object mObject;
 
-    public RequestModel(String token, Object o){
+    public RequestModel(String token, Object o) {
         mToken = token;
         mObject = o;
     }

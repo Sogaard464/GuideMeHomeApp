@@ -4,7 +4,6 @@ package gruppe3.dmab0914.guidemehome.activities;
  * Created by Seagaard on 04-04-2016.
  */
 
-import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,12 +15,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import gruppe3.dmab0914.guidemehome.models.LoginUser;
-import gruppe3.dmab0914.guidemehome.R;
-import gruppe3.dmab0914.guidemehome.models.User;
 
 import com.google.gson.Gson;
 
@@ -39,6 +32,12 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.models.LoginUser;
+import gruppe3.dmab0914.guidemehome.models.User;
 
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
@@ -101,10 +100,9 @@ public class SignupActivity extends AppCompatActivity {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-        if(code.equals("200")){
+        if (code.equals("200")) {
             onSignupSuccess();
-        }
-        else{
+        } else {
             onSignupFailed();
         }
     }
@@ -196,15 +194,14 @@ public class SignupActivity extends AppCompatActivity {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 10){
+                while (code == 0 && retries <= 10) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
                         if (code == 400) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                     }
                 }
@@ -217,14 +214,14 @@ public class SignupActivity extends AppCompatActivity {
                     response.append('\r');
                 }
                 rd.close();
-                User u = gson.fromJson(response.toString(),User.class);
-                SharedPreferences mPrefs = getSharedPreferences("user",MODE_PRIVATE);
+                User u = gson.fromJson(response.toString(), User.class);
+                SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.clear();
                 prefsEditor.putString("username", u.getName());
                 prefsEditor.putString("phone", u.getPhone());
                 prefsEditor.putString("token", u.getToken());
-                prefsEditor.putString("contacts",gson.toJson(u.getContacts()));
+                prefsEditor.putString("contacts", gson.toJson(u.getContacts()));
                 prefsEditor.commit();
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();

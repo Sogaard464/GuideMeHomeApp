@@ -10,7 +10,7 @@ public class User {
     private String mToken;
     private ArrayList<Contact> mContacts = new ArrayList<>();
 
-    public User(String name, String email){
+    public User(String name, String email) {
         mName = name;
         mEmail = email;
     }
@@ -22,6 +22,7 @@ public class User {
     public void setContacts(ArrayList<Contact> contacts) {
         this.mContacts = contacts;
     }
+
     public String getName() {
         return mName;
     }

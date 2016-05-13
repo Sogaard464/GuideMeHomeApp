@@ -30,45 +30,20 @@ import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
-import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 import gruppe3.dmab0914.guidemehome.fragments.ContactsFragment;
-import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 import gruppe3.dmab0914.guidemehome.models.Contact;
+import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
 public class ContactsAdapter extends
         RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
 
-    // Provide a direct reference to each of the views within a data item
-    // Used to cache the views within the item layout for fast access
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        // Your holder should contain a member variable
-        // for any view that will be set as you render a row
-        public TextView nameTextView;
-        public TextView phoneTextView;
-        public Switch visibleSwitch;
-        public Switch showSwitch;
-
-
-        // We also create a constructor that accepts the entire item row
-        // and does the view lookups to find each subview
-        public ViewHolder(View itemView) {
-            // Stores the itemView in a public final member variable that can be used
-            // to access the context from any ViewHolder instance.
-            super(itemView);
-            nameTextView = (TextView) itemView.findViewById(R.id.contact_name);
-            phoneTextView = (TextView) itemView.findViewById(R.id.contact_phone);
-
-            visibleSwitch = (Switch) itemView.findViewById(R.id.visible_switch);
-            showSwitch = (Switch) itemView.findViewById(R.id.show_switch);
-
-        }
-    }
     private List<Contact> mContacts;
 
     // Pass in the contact array into the constructor
     public ContactsAdapter(List<Contact> contacts) {
         mContacts = contacts;
     }
+
     // Usually involves inflating a layout from XML and returning the holder
     @Override
     public ContactsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -104,66 +79,91 @@ public class ContactsAdapter extends
         showSwitch.setChecked(contact.will_see());
         showSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
-                if(isChecked){
-                    PubNubController.getInstance().subscribe(phone.getText().toString(),"map");
-                }
-                else{
-                    PubNubController.getInstance().unSubscribe(phone.getText().toString(),"map");
-                }
-                String token = mPrefs.getString("token", "");
-                String myPhone = mPrefs.getString("phone","");
-                RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+isChecked);
-                ShowPostTask showTaskObject = new ShowPostTask();
-                String code = "";
-                try {
-                    code = showTaskObject.execute(rm).get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }}
+                                                  @Override
+                                                  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                                      if (isChecked) {
+                                                          PubNubController.getInstance().subscribe(phone.getText().toString(), "map");
+                                                      } else {
+                                                          PubNubController.getInstance().unSubscribe(phone.getText().toString(), "map");
+                                                      }
+                                                      String token = mPrefs.getString("token", "");
+                                                      String myPhone = mPrefs.getString("phone", "");
+                                                      RequestModel rm = new RequestModel(token, myPhone + ":" + phone.getText() + ":" + isChecked);
+                                                      ShowPostTask showTaskObject = new ShowPostTask();
+                                                      String code = "";
+                                                      try {
+                                                          code = showTaskObject.execute(rm).get();
+                                                      } catch (InterruptedException e) {
+                                                          e.printStackTrace();
+                                                      } catch (ExecutionException e) {
+                                                          e.printStackTrace();
+                                                      }
+                                                  }
+                                              }
         );
 
         visibleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
-                if(isChecked){
-                    PubNubController.getInstance().subscribe(phone.getText().toString(),"map");
-                }
-                else{
-                    PubNubController.getInstance().unSubscribe(phone.getText().toString(),"map");
-                }
-                ContactsFragment cf = (ContactsFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
-                ContactsController cc = ContactsController.getInstance();
-                cc.sendShareMessage(phone.getText().toString(),name.getText().toString(),isChecked);
+                                                     @Override
+                                                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                                         if (isChecked) {
+                                                             PubNubController.getInstance().subscribe(phone.getText().toString(), "map");
+                                                         } else {
+                                                             PubNubController.getInstance().unSubscribe(phone.getText().toString(), "map");
+                                                         }
+                                                         ContactsFragment cf = (ContactsFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
+                                                         ContactsController cc = ContactsController.getInstance();
+                                                         cc.sendShareMessage(phone.getText().toString(), name.getText().toString(), isChecked);
 
-                String token = mPrefs.getString("token", "");
-                String myPhone = mPrefs.getString("phone","");
-                RequestModel rm = new RequestModel(token,myPhone+":"+phone.getText()+":"+ isChecked);
-                VisibilityPostTask visibilityPostTask = new VisibilityPostTask();
-                String code = "";
-                try {
-                    code = visibilityPostTask.execute(rm).get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }}
+                                                         String token = mPrefs.getString("token", "");
+                                                         String myPhone = mPrefs.getString("phone", "");
+                                                         RequestModel rm = new RequestModel(token, myPhone + ":" + phone.getText() + ":" + isChecked);
+                                                         VisibilityPostTask visibilityPostTask = new VisibilityPostTask();
+                                                         String code = "";
+                                                         try {
+                                                             code = visibilityPostTask.execute(rm).get();
+                                                         } catch (InterruptedException e) {
+                                                             e.printStackTrace();
+                                                         } catch (ExecutionException e) {
+                                                             e.printStackTrace();
+                                                         }
+                                                     }
+                                                 }
         );
     }
 
     // Return the total count of items
     @Override
     public int getItemCount() {
-        if(mContacts != null) {
+        if (mContacts != null) {
             return mContacts.size();
-        }
-        else {
+        } else {
             return 0;
+        }
+    }
+
+    // Provide a direct reference to each of the views within a data item
+    // Used to cache the views within the item layout for fast access
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        // Your holder should contain a member variable
+        // for any view that will be set as you render a row
+        public TextView nameTextView;
+        public TextView phoneTextView;
+        public Switch visibleSwitch;
+        public Switch showSwitch;
+
+
+        // We also create a constructor that accepts the entire item row
+        // and does the view lookups to find each subview
+        public ViewHolder(View itemView) {
+            // Stores the itemView in a public final member variable that can be used
+            // to access the context from any ViewHolder instance.
+            super(itemView);
+            nameTextView = (TextView) itemView.findViewById(R.id.contact_name);
+            phoneTextView = (TextView) itemView.findViewById(R.id.contact_phone);
+
+            visibleSwitch = (Switch) itemView.findViewById(R.id.visible_switch);
+            showSwitch = (Switch) itemView.findViewById(R.id.show_switch);
+
         }
     }
 
@@ -207,7 +207,7 @@ public class ContactsAdapter extends
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 50){
+                while (code == 0 && retries <= 50) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
@@ -218,8 +218,7 @@ public class ContactsAdapter extends
                         } else if (code == 500) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                         System.out.println("Socket Timeout");
                     }
@@ -285,7 +284,7 @@ public class ContactsAdapter extends
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 50){
+                while (code == 0 && retries <= 50) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
@@ -296,8 +295,7 @@ public class ContactsAdapter extends
                         } else if (code == 500) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                         System.out.println("Socket Timeout");
                     }

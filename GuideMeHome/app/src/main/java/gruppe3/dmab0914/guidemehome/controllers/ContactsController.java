@@ -16,8 +16,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.pubnub.api.Callback;
-import com.pubnub.api.PubnubError;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,16 +41,9 @@ import gruppe3.dmab0914.guidemehome.lists.ContactsAdapter;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
-/**
- * Created by Lasse on 27-04-2016.
- */
+
 public class ContactsController {
-
-
-    public ArrayList<Contact> getContacts() {
-        return contacts;
-    }
-
+    private static ContactsController instance = null;
     private ArrayList<Contact> contacts;
     private String mChannel = "contact";
     private String mPhone;
@@ -60,34 +51,30 @@ public class ContactsController {
     private SharedPreferences mPrefs;
     private Activity mActivity;
     private Context context;
-    public ContactsAdapter getAdapter() {
-        return adapter;
-    }
-    public void setC(Context c) {
-        this.context = c;
-    }
     private ContactsAdapter adapter;
-    private static ContactsController instance = null;
+
     private ContactsController() {
         // Exists only to defeat instantiation.
     }
+
     public static ContactsController getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new ContactsController();
         }
         return instance;
     }
 
-    public void InitializeFragment(Context c){
+    public void InitializeFragment(Context c) {
         //Get sharedpreferences in private mode (0)
         mPrefs = c.getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
         Gson gson = new Gson();
         // Initialize contacts
-        contacts = gson.fromJson(mPrefs.getString("contacts",""), new TypeToken<ArrayList<Contact>>() {}.getType());
-        if(contacts == null){
-            contacts  = new ArrayList<Contact>();
+        contacts = gson.fromJson(mPrefs.getString("contacts", ""), new TypeToken<ArrayList<Contact>>() {
+        }.getType());
+        if (contacts == null) {
+            contacts = new ArrayList<Contact>();
         }
         //Sort the contacts alphabetically
         Collections.sort(contacts, new Comparator<Contact>() {
@@ -98,6 +85,19 @@ public class ContactsController {
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
     }
+
+    public ContactsAdapter getAdapter() {
+        return adapter;
+    }
+
+    public ArrayList<Contact> getContacts() {
+        return contacts;
+    }
+
+    public void setC(Context c) {
+        this.context = c;
+    }
+
     public void showAddContactDialog() {
         // custom dialog
         final Dialog dialog = new Dialog(context);
@@ -112,25 +112,20 @@ public class ContactsController {
             public void onClick(View v) {
                 String phone = phoneNumber.getText().toString();
                 boolean found = false;
-                if(contacts.size() != 0) {
+                if (contacts.size() != 0) {
                     for (int i = 0; i < contacts.size() && !found; i++) {
                         if (contacts.get(i).getmPhone().equals(phone)) {
                             found = true;
                         }
                     }
-                    if(!found){
+                    if (!found) {
                         sendAddMessage(phone);
-                        Log.d("First send","Send here");
-                    }
-                    else {
+                    } else {
                         Toast.makeText(mActivity.getBaseContext(), mActivity.getString(R.string.add_contact_already),
                                 Toast.LENGTH_SHORT).show();
                     }
-                }
-                else{
+                } else {
                     sendAddMessage(phone);
-                    Log.d("Second send","Send here");
-
                 }
                 dialog.dismiss();
             }
@@ -138,6 +133,7 @@ public class ContactsController {
         });
         dialog.show();
     }
+
     private void sendAddMessage(String phone) {
         JSONObject message = new JSONObject();
         if (phone.length() != 0)
@@ -148,7 +144,7 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        PubNubController.getInstance().publish(mChannel,message, "");
+        PubNubController.getInstance().publish(mChannel, message, "");
     }
 
     private void sendDeleteMessage(String phone) {
@@ -161,10 +157,10 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        PubNubController.getInstance().publish(mChannel,message, "");
+        PubNubController.getInstance().publish(mChannel, message, "");
     }
 
-    public void sendShareMessage(String phone,String name,boolean share) {
+    public void sendShareMessage(String phone, String name, boolean share) {
         JSONObject message = new JSONObject();
         if (phone.length() != 0)
             try {
@@ -175,11 +171,13 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        PubNubController.getInstance().publish(mChannel,message, "");
+        PubNubController.getInstance().publish(mChannel, message, "");
     }
+
     public void setmActivity(Activity mActivity) {
         this.mActivity = mActivity;
     }
+
     public void DeleteContact(final int position) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
                 context);
@@ -195,10 +193,10 @@ public class ContactsController {
                         sendDeleteMessage(c.getmPhone());
                         contacts.remove(c);
                         adapter.notifyItemRemoved(position);
-                        PubNubController.getInstance().unSubscribe(c.getmPhone(),"map");
+                        PubNubController.getInstance().unSubscribe(c.getmPhone(), "map");
 
                         String token = mPrefs.getString("token", "");
-                        RequestModel rm = new RequestModel(token, mPhone + ":"+ c.getmPhone());
+                        RequestModel rm = new RequestModel(token, mPhone + ":" + c.getmPhone());
                         DeletePostTask deleteTaskObject = new DeletePostTask();
                         String code = "";
                         try {
@@ -221,18 +219,23 @@ public class ContactsController {
         // show it
         alertDialog.show();
     }
-    public void showAcceptDialog(JSONObject jsonMessage){
+
+    public void showAcceptDialog(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
     }
-    public void acceptedRunnable(JSONObject jsonMessage){
+
+    public void acceptedRunnable(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new AcceptedRunable(jsonMessage));
-            }
-    public void shareRunnable(JSONObject jsonMessage){
+    }
+
+    public void shareRunnable(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new ShareRunable(jsonMessage));
     }
-    public void deleteRunnable(JSONObject jsonMessage){
+
+    public void deleteRunnable(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new DeleteRunable(jsonMessage));
     }
+
     public class ShowAcceptDialogRunnable implements Runnable {
         private JSONObject jsonMessage;
 
@@ -261,12 +264,12 @@ public class ContactsController {
                 public void onClick(View v) {
                     try {
                         Contact c = new Contact(jsonMessage.getString("name"), jsonMessage.getString("phone"));
-                        contacts.add(0,c);
+                        contacts.add(0, c);
                         // Notify the adapter that an item was inserted at position 0
                         adapter.notifyItemInserted(0);
 
                         MainActivity a = MainActivity.getMainActivity();
-                        PubNubController.getInstance().subscribe(jsonMessage.getString("phone"),"map");
+                        PubNubController.getInstance().subscribe(jsonMessage.getString("phone"), "map");
 
                         JSONObject message = new JSONObject();
                         try {
@@ -276,9 +279,9 @@ public class ContactsController {
                         } catch (JSONException e) {
                             Log.e("PUBNUB", e.toString());
                         }
-                        PubNubController.getInstance().publish(mChannel,message,jsonMessage.getString("phone"));
+                        PubNubController.getInstance().publish(mChannel, message, jsonMessage.getString("phone"));
                         String token = mPrefs.getString("token", "");
-                        RequestModel rm = new RequestModel(token,mPhone+":"+jsonMessage.getString("phone"));
+                        RequestModel rm = new RequestModel(token, mPhone + ":" + jsonMessage.getString("phone"));
                         ContactPostTask postTaskObject = new ContactPostTask();
                         String code = "";
                         try {
@@ -298,29 +301,33 @@ public class ContactsController {
             dialog.show();
         }
     }
+
     private class AcceptedRunable implements Runnable {
         private JSONObject jsonMessage;
 
         public AcceptedRunable(Object message) {
             this.jsonMessage = (JSONObject) message;
         }
+
         public void run() {
             Contact c = null;
             try {
                 c = new Contact(jsonMessage.getString("name"), jsonMessage.getString("phone"));
-                contacts.add(0,c);
+                contacts.add(0, c);
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
                 MainActivity a = MainActivity.getMainActivity();
-                PubNubController.getInstance().subscribe(jsonMessage.getString("phone"),"map");
+                PubNubController.getInstance().subscribe(jsonMessage.getString("phone"), "map");
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     }
+
     private class ShareRunable implements Runnable {
         private JSONObject jsonMessage;
+
         public ShareRunable(Object message) {
             this.jsonMessage = (JSONObject) message;
         }
@@ -329,17 +336,16 @@ public class ContactsController {
             try {
                 String phone = jsonMessage.getString("phone");
                 boolean found = false;
-                for(int i = 0; i < contacts.size() && !found ;i++){
-                    if(contacts.get(i).getmPhone().equals(phone)){
+                for (int i = 0; i < contacts.size() && !found; i++) {
+                    if (contacts.get(i).getmPhone().equals(phone)) {
                         contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
                         adapter.notifyItemChanged(i);
-                        if(jsonMessage.getBoolean("share")){
-                            PubNubController.getInstance().subscribe(phone,"map");
+                        if (jsonMessage.getBoolean("share")) {
+                            PubNubController.getInstance().subscribe(phone, "map");
+                        } else {
+                            PubNubController.getInstance().unSubscribe(phone, "map");
                         }
-                        else{
-                            PubNubController.getInstance().unSubscribe(phone,"map");
-                        }
-                        PubNubController.getInstance().unSubscribe(phone,"map");
+                        PubNubController.getInstance().unSubscribe(phone, "map");
                         found = true;
                     }
                 }
@@ -348,8 +354,10 @@ public class ContactsController {
             }
         }
     }
+
     private class DeleteRunable implements Runnable {
         private JSONObject jsonMessage;
+
         public DeleteRunable(Object message) {
             this.jsonMessage = (JSONObject) message;
         }
@@ -358,11 +366,11 @@ public class ContactsController {
             try {
                 String phone = jsonMessage.getString("phone");
                 boolean found = false;
-                for(int i = 0; i < contacts.size() && !found ;i++){
-                    if(contacts.get(i).getmPhone().equals(phone)){
+                for (int i = 0; i < contacts.size() && !found; i++) {
+                    if (contacts.get(i).getmPhone().equals(phone)) {
                         contacts.remove(i);
                         adapter.notifyItemRemoved(i);
-                        PubNubController.getInstance().unSubscribe(phone,"map");
+                        PubNubController.getInstance().unSubscribe(phone, "map");
 
                         found = true;
                     }
@@ -372,6 +380,7 @@ public class ContactsController {
             }
         }
     }
+
     private class ContactPostTask extends AsyncTask<RequestModel, String, String> {
         @Override
         protected void onPreExecute() {
@@ -412,7 +421,7 @@ public class ContactsController {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 50){
+                while (code == 0 && retries <= 50) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
@@ -423,8 +432,7 @@ public class ContactsController {
                         } else if (code == 500) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                         System.out.println("Socket Timeout");
                     }
@@ -449,6 +457,7 @@ public class ContactsController {
             return String.valueOf(code);
         }
     }
+
     private class DeletePostTask extends AsyncTask<RequestModel, String, String> {
         @Override
         protected void onPreExecute() {
@@ -489,7 +498,7 @@ public class ContactsController {
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 50){
+                while (code == 0 && retries <= 50) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
@@ -500,8 +509,7 @@ public class ContactsController {
                         } else if (code == 500) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                         System.out.println("Socket Timeout");
                     }
@@ -528,5 +536,4 @@ public class ContactsController {
 
 
     }
-
 }

@@ -1,9 +1,7 @@
 package gruppe3.dmab0914.guidemehome.fragments;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -31,17 +29,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.pubnub.api.Callback;
-import com.pubnub.api.PnGcmMessage;
-import com.pubnub.api.PnMessage;
-import com.pubnub.api.Pubnub;
-import com.pubnub.api.PubnubError;
-import com.pubnub.api.PubnubException;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -62,18 +51,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.R;
-import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
-import gruppe3.dmab0914.guidemehome.controllers.GcmIntentService;
 import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.models.Contact;
-import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
 
 public class DrawRouteFragment extends Fragment implements LocationListener {
 
-    private MapView mMapView;
     private static final String TAG = "DRF";
+    private MapView mMapView;
     private String guidePhone;
     private LatLng location;
     private String destinationString;
@@ -88,12 +74,13 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private ArrayAdapter<String> adapter;
     private JSONObject jsonMessage;
     private AutoCompleteTextView contact;
-private String urlString;
+    private String urlString;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mActivity = activity;
-        Log.d("DRF","Attached!");
+        Log.d("DRF", "Attached!");
     }
 
     @Override
@@ -104,7 +91,7 @@ private String urlString;
                 false);
         //Get sharedpreferences in private mode (0)
 
-        mPrefs = getContext().getSharedPreferences("user",0);
+        mPrefs = getContext().getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
         mMapView = (MapView) v.findViewById(R.id.location_map);
@@ -116,47 +103,46 @@ private String urlString;
             e.printStackTrace();
         }
         mGoogleMap = mMapView.getMap();
-    try{
-        mGoogleMap.setMyLocationEnabled(true);
-        mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            public boolean onMarkerClick(Marker arg0) {
-                arg0.showInfoWindow();
-                return true;
+        try {
+            mGoogleMap.setMyLocationEnabled(true);
+            mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                public boolean onMarkerClick(Marker arg0) {
+                    arg0.showInfoWindow();
+                    return true;
+                }
+            });
+            LocationManager lm = (LocationManager) getActivity().getSystemService(this.getContext().LOCATION_SERVICE);
+
+            if (ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+
             }
-        });
-        LocationManager lm = (LocationManager) getActivity().getSystemService(this.getContext().LOCATION_SERVICE);
-
-        if (ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10, this);
+        } catch (NullPointerException ne) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    getContext());
+            // set title
+            alertDialogBuilder.setTitle(mActivity.getString(R.string.update_google_play_title));
+            // set dialog message
+            AlertDialog.Builder builder = alertDialogBuilder
+                    .setMessage(mActivity.getString(R.string.update_google_play_text))
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            mActivity.finish();
+                        }
+                    });
+            // create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            // show it
+            alertDialog.show();
         }
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10, this);
-    }
-    catch (NullPointerException ne){
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                getContext());
-        // set title
-        alertDialogBuilder.setTitle(mActivity.getString(R.string.update_google_play_title));
-        // set dialog message
-        AlertDialog.Builder builder = alertDialogBuilder
-                .setMessage(mActivity.getString(R.string.update_google_play_text))
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mActivity.finish();
-                    }
-                });
-        // create alert dialog
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        // show it
-        alertDialog.show();
-    }
         final AutoCompleteTextView destination = (AutoCompleteTextView) v.findViewById(R.id.actvDestination);
         contact = (AutoCompleteTextView) v.findViewById(R.id.actvContacts);
         final ContactsController cc = ContactsController.getInstance();
@@ -165,27 +151,26 @@ private String urlString;
             @Override
             public void onClick(View arg0) {
                 int contactPhone = 0;
-                if(destination.getText().length() >0 && contact.getText().length() > 0) {
+                if (destination.getText().length() > 0 && contact.getText().length() > 0) {
                     Boolean contains = false;
                     String phone = "";
-                    for (String s: contacts) {
-                        if(s.equals(contact.getText().toString())){
+                    for (String s : contacts) {
+                        if (s.equals(contact.getText().toString())) {
                             contains = true;
                             ArrayList<Contact> contacts = ContactsController.getInstance().getContacts();
-                            for(int i = 0; i < contacts.size() || phone == ""; i++ )
+                            for (int i = 0; i < contacts.size() || phone == ""; i++)
                                 if (contacts.get(i).getName().equals(contact.getText().toString()))
                                     phone = contacts.get(i).getmPhone();
                         }
                     }
-                    if(contains) {
+                    if (contains) {
                         //TODO Subscribe to contact channel
-                        if(location != null){
+                        if (location != null) {
                             destinationString = destination.getText().toString().replace(" ", "+");
                             locationString = location.latitude + "," + location.longitude;
                             getRoute(destinationString, locationString);
-                            PubNubController.getInstance().sendFollowMeNotification(phone,locationString,destinationString);
-                        }
-                        else{
+                            PubNubController.getInstance().sendFollowMeNotification(phone, locationString, destinationString);
+                        } else {
                             Toast.makeText(getContext(), R.string.cannot_get_location, Toast.LENGTH_LONG).show();
                         }
                     }
@@ -195,25 +180,23 @@ private String urlString;
         return v;
     }
 
-   
-    public void getUpdatedContacts(){
+    public void getUpdatedContacts() {
         ContactsController cc = ContactsController.getInstance();
-
         ArrayList<String> ar = new ArrayList<>();
         for (Contact c : cc.getContacts()) {
             ar.add(c.getName());
         }
         contacts = ar.toArray(new String[ar.size()]);
         adapter = new ArrayAdapter<String>(getContext(),
-                android.R.layout.simple_dropdown_item_1line,contacts);
+                android.R.layout.simple_dropdown_item_1line, contacts);
         contact.setAdapter(adapter);
     }
 
-    private void getRoute(String destination,String location){
+    private void getRoute(String destination, String location) {
         GetRouteTask getRouteTaskTaskObject = new GetRouteTask();
         String code = "";
         try {
-            code = getRouteTaskTaskObject.execute(destination,location).get();
+            code = getRouteTaskTaskObject.execute(destination, location).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -221,6 +204,8 @@ private String urlString;
         }
     }
 
+    //Decode the polyline into LatLng
+    //Found at http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
     private List<LatLng> decodePolyline(String encoded) {
         List<LatLng> poly = new ArrayList<LatLng>();
         int index = 0, len = encoded.length();
@@ -252,31 +237,36 @@ private String urlString;
 
         return poly;
     }
+
     @Override
     public void onResume() {
         super.onResume();
         mMapView.onResume();
     }
+
     @Override
     public void onPause() {
         super.onPause();
         mMapView.onPause();
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
     }
+
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
     }
+
     @Override
     public void onLocationChanged(Location newLocation) {
-        location = new LatLng(newLocation.getLatitude(),newLocation.getLongitude());
-        if(polylineToAdd != null){
-          //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
+        location = new LatLng(newLocation.getLatitude(), newLocation.getLongitude());
+        if (polylineToAdd != null) {
+            //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
             mActivity.runOnUiThread(new IsOnRouteRunable());
 
         }
@@ -296,6 +286,7 @@ private String urlString;
     public void onProviderDisabled(String provider) {
 
     }
+
     public void showAlertDialog(String arg2) {
         showAlertDialogTask alertDialogTask = new showAlertDialogTask();
         try {
@@ -306,12 +297,20 @@ private String urlString;
             e.printStackTrace();
         }
     }
+
+    public void drawContactRoute(String route) {
+        String[] routeArray = route.split(";");
+        getRoute(routeArray[1], routeArray[0]);
+    }
+
     public class DrawRoutesRunnable implements Runnable {
         private List<LatLng> lines;
+
         public DrawRoutesRunnable(List<LatLng> lines) {
             this.lines = lines;
 
         }
+
         public void run() {
             mGoogleMap.clear();
             polylineToAdd = mGoogleMap.addPolyline(new PolylineOptions().addAll(lines).width(20).color(Color.RED));
@@ -329,7 +328,7 @@ private String urlString;
         protected String doInBackground(String... params) {
             String requestMethod;
             requestMethod = "GET";
-            urlString = "https://maps.googleapis.com/maps/api/directions/json?origin="+params[1]+"&destination="+params[0]+"&mode=walking";
+            urlString = "https://maps.googleapis.com/maps/api/directions/json?origin=" + params[1] + "&destination=" + params[0] + "&mode=walking";
             int code = 0;
             String urlParameters = urlString;
             int timeout = 5000;
@@ -357,7 +356,7 @@ private String urlString;
                 wr.flush();
                 wr.close();
                 int retries = 0;
-                while(code == 0 && retries <= 50){
+                while (code == 0 && retries <= 50) {
                     try {
                         // Get Response
                         code = connection.getResponseCode();
@@ -368,8 +367,7 @@ private String urlString;
                         } else if (code == 500) {
                             return String.valueOf(code);
                         }
-                    }
-                    catch(SocketTimeoutException e){
+                    } catch (SocketTimeoutException e) {
                         retries++;
                         System.out.println("Socket Timeout");
                     }
@@ -394,10 +392,10 @@ private String urlString;
 
                 List<LatLng> lines = new ArrayList<>();
 
-                for(int i=0; i < steps.length(); i++) {
+                for (int i = 0; i < steps.length(); i++) {
                     String polyline = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
 
-                    for(LatLng p : decodePolyline(polyline)) {
+                    for (LatLng p : decodePolyline(polyline)) {
                         lines.add(p);
                     }
                 }
@@ -423,14 +421,10 @@ private String urlString;
         }
     }
 
-    public void drawContactRoute(String route){
-        String[] routeArray = route.split(";");
-        getRoute(routeArray[1],routeArray[0]);
-    }
-
     private class IsOnRouteRunable implements Runnable {
         public IsOnRouteRunable() {
         }
+
         public void run() {
             List<LatLng> list = polylineToAdd.getPoints();
             Location currentPosition = new Location("");
@@ -445,7 +439,7 @@ private String urlString;
                     onRoute = true;
                 }
             }
-            if(!onRoute){
+            if (!onRoute) {
                 PubNubController.getInstance().sendLeftRouteNotification(location);
             }
         }
@@ -463,14 +457,15 @@ private String urlString;
 
             return par;
         }
+
         @Override
-        protected void onPostExecute(final String par){
+        protected void onPostExecute(final String par) {
             new AlertDialog.Builder(getContext())
                     .setTitle("Guide friend?")
                     .setMessage("Will you guide your friend home?")
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                                drawContactRoute(par);
+                            drawContactRoute(par);
                         }
                     })
                     .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -480,7 +475,5 @@ private String urlString;
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
         }
-
-
     }
 }

@@ -2,9 +2,7 @@ package gruppe3.dmab0914.guidemehome.models;
 
 import android.location.Location;
 
-import java.util.ArrayList;
-
-public class Contact{
+public class Contact {
     private String mName;
     private String mPhone;
     private Location mLocation;
