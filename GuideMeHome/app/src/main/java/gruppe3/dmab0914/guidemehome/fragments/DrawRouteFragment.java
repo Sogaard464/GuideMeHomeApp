@@ -72,7 +72,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
     private MapView mMapView;
     private static final String TAG = "DRF";
-
+    private String guidePhone;
     private LatLng location;
     private GoogleMap mGoogleMap;
     private String mPhone;
@@ -207,6 +207,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     }
 
     private void sendFollowMeNotification(String phone) {
+        guidePhone = phone;
         PnGcmMessage gcmMessage = new PnGcmMessage();
         JSONObject jso = new JSONObject();
         try {
@@ -216,7 +217,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
         PnMessage message = new PnMessage(
                 mPubnub,
-                phone+"route",
+                guidePhone+"-route",
                 publishCallback,
                 gcmMessage);
         try {
@@ -228,9 +229,9 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
     private void setupPubNub() {
         mPubnub = new Pubnub("pub-c-a7908e5b-47f5-45cd-9b95-c6efeb3b17f9", "sub-c-8ca8f746-ffeb-11e5-8916-0619f8945a4f");
-        mPubnub.setUUID(mPhone+"route");
+        mPubnub.setUUID(mPhone+"-route");
         try {
-            mPubnub.subscribe(mPhone+"route",receivedCallback);
+            mPubnub.subscribe(mPhone+"-route",receivedCallback);
         } catch (PubnubException e) {
             e.printStackTrace();
         }
@@ -322,8 +323,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location newLocation) {
         location = new LatLng(newLocation.getLatitude(),newLocation.getLongitude());
-        sendNotification();
-        //TODO remove sendNotification()
         if(polylineToAdd != null){
           //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
             mActivity.runOnUiThread(new IsOnRouteRunable());
@@ -360,7 +359,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
     public void sendRegistrationId(String regId) {
         mPubnub.enablePushNotificationsOnChannel(
-                mPhone+"route",
+                mPhone+"-route",
                 regId);
     }
 
@@ -374,7 +373,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
         PnMessage message = new PnMessage(
                 mPubnub,
-                mPhone+"route",
+                guidePhone+"-route",
                 publishCallback,
                 gcmMessage);
         try {
@@ -382,6 +381,11 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         } catch (PubnubException e) {
             e.printStackTrace();
         }
+    }
+
+    public void disablePushNotificationsOnChannel(String regId) {
+        mPubnub.disablePushNotificationsOnChannel(mPhone+"-route", regId);
+
     }
 
 

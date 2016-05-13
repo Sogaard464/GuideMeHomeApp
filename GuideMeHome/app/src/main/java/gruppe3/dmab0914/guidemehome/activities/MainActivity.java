@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        MultiDex.install(getApplicationContext());
+        MultiDex.install(getBaseContext());
         MultiDex.install(this);
     }
     @Override
@@ -105,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void logoutMethod(MenuItem mi) {
         Toast.makeText(getBaseContext(), R.string.logout, Toast.LENGTH_LONG).show();
+        mc.unregister();
         SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();

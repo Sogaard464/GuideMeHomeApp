@@ -19,11 +19,13 @@
     <permission android:name="gruppe3.dmab0914.guidemehome.permission.C2D_MESSAGE" android:protectionLevel="signature" />
     <uses-permission android:name="gruppe3.dmab0914.guidemehome.permission.C2D_MESSAGE" />
     <application
-        android:allowBackup="true"
+        android:name="android.support.multidex.MultiDexApplication"
+    android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:theme="@style/MyMaterialTheme">
+
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/app_name">

@@ -134,7 +134,36 @@ public class MainController {
             }
         }.execute(null, null, null);
     }
+    public void unregister() {
+        new AsyncTask() {
+            @Override
+            protected Object doInBackground(Object[] params) {
+                try {
+                    if (gcm == null) {
+                        gcm = GoogleCloudMessaging.getInstance(mActivity.getBaseContext());
+                    }
 
+                    // Unregister from GCM
+                    gcm.unregister();
+
+                    // Remove Registration ID from memory
+                    removeRegistrationId();
+                    DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+
+                    drf.disablePushNotificationsOnChannel(regId);
+                    // Disable Push Notification
+                } catch (Exception e) { }
+                return null;
+            }
+        }.execute(null, null, null);
+    }
+
+    private void removeRegistrationId() throws Exception {
+
+        SharedPreferences.Editor editor = mPrefs.edit();
+        editor.remove("gcmRegID");
+        editor.apply();
+    }
     private void storeRegistrationId(String regId) throws Exception {
 
         SharedPreferences.Editor editor = mPrefs.edit();
