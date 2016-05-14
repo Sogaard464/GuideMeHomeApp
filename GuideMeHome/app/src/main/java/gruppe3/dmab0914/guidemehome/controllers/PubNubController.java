@@ -29,7 +29,14 @@ import gruppe3.dmab0914.guidemehome.models.Contact;
  */
 public class PubNubController {
     private static String TAG = "PUBNUB";
-    private static PubNubController ourInstance = new PubNubController();
+    private Pubnub mPubnub;
+    private String mRouteChannel;
+    private String mMapChannel;
+    private String mContactChannel;
+    private String mPhone;
+    private SharedPreferences mPrefs;
+    private String mGuidePhone;
+    private String mName;
     Callback publishCallback = new Callback() {
         @Override
         public void successCallback(String channel, Object response) {
@@ -47,7 +54,9 @@ public class PubNubController {
             JSONObject jsonMessage;
             jsonMessage = (JSONObject) message;
             try {
-                ContactsController cc = ContactsController.getInstance();
+                MainActivity a = MainActivity.getMainActivity();
+
+                ContactsController cc = a.getCc();
                 if (jsonMessage.getString("command").equals("add")) {
                     cc.showAcceptDialog(jsonMessage);
                 } else if (jsonMessage.getString("command").equals("accepted")) {
@@ -100,15 +109,7 @@ public class PubNubController {
 
         }
     };
-    private Pubnub mPubnub;
-    private String mRouteChannel;
-    private String mMapChannel;
-    private String mContactChannel;
-    private String mPhone;
-    private SharedPreferences mPrefs;
-    private String mGuidePhone;
-    private String mName;
-    private PubNubController() {
+    public PubNubController() {
         mPrefs = MainActivity.getMainActivity().getBaseContext().getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
@@ -133,16 +134,13 @@ public class PubNubController {
             }
             mPubnub.subscribe(mRouteChannel, routeReceivedCallback);
             mPubnub.subscribe(mContactChannel, contactReceivedCallback);
-
         } catch (PubnubException e) {
             e.printStackTrace();
         }
     }
-
-    public static PubNubController getInstance() {
-        return ourInstance;
+    public void unSubscribeAll(){
+        mPubnub.unsubscribeAll();
     }
-
     public void subscribe(String phone, String channel) {
         switch (channel) {
             case "map":

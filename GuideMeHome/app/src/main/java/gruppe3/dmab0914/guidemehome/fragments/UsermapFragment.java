@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 
 
@@ -191,7 +192,9 @@ public class UsermapFragment extends Fragment implements LocationListener {
         } catch (JSONException e) {
             Log.e("PUBNUB", e.toString());
         }
-        PubNubController.getInstance().publish(mChannel, message, "");
+        MainActivity a = MainActivity.getMainActivity();
+
+        a.getPc().publish(mChannel, message, "");
     }
 
     @Override

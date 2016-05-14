@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.lists.ItemClickSupport;
 
@@ -23,7 +24,9 @@ public class ContactsFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (cc == null) {
-            cc = ContactsController.getInstance();
+            MainActivity a = MainActivity.getMainActivity();
+
+            cc = a.getCc();
         }
         cc.setmActivity(activity);
         cc.setC(getContext());
@@ -36,7 +39,8 @@ public class ContactsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_contacts, container,
                 false);
         if (cc == null) {
-            cc = ContactsController.getInstance();
+            MainActivity a = MainActivity.getMainActivity();
+            cc = a.getCc();
         }
         cc.InitializeFragment(getContext());
         Button addContactButton = (Button) v.findViewById(R.id.addButton);

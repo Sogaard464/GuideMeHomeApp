@@ -81,10 +81,12 @@ public class ContactsAdapter extends
 
                                                   @Override
                                                   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                                      MainActivity a = MainActivity.getMainActivity();
+
                                                       if (isChecked) {
-                                                          PubNubController.getInstance().subscribe(phone.getText().toString(), "map");
+                                                          a.getPc().subscribe(phone.getText().toString(), "map");
                                                       } else {
-                                                          PubNubController.getInstance().unSubscribe(phone.getText().toString(), "map");
+                                                          a.getPc().unSubscribe(phone.getText().toString(), "map");
                                                       }
                                                       String token = mPrefs.getString("token", "");
                                                       String myPhone = mPrefs.getString("phone", "");
@@ -105,13 +107,14 @@ public class ContactsAdapter extends
         visibleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                                      @Override
                                                      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                                         MainActivity a = MainActivity.getMainActivity();
+
                                                          if (isChecked) {
-                                                             PubNubController.getInstance().subscribe(phone.getText().toString(), "map");
+                                                             a.getPc().subscribe(phone.getText().toString(), "map");
                                                          } else {
-                                                             PubNubController.getInstance().unSubscribe(phone.getText().toString(), "map");
+                                                             a.getPc().unSubscribe(phone.getText().toString(), "map");
                                                          }
-                                                         ContactsFragment cf = (ContactsFragment) ma.getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:0");
-                                                         ContactsController cc = ContactsController.getInstance();
+                                                         ContactsController cc = a.getCc();
                                                          cc.sendShareMessage(phone.getText().toString(), name.getText().toString(), isChecked);
 
                                                          String token = mPrefs.getString("token", "");

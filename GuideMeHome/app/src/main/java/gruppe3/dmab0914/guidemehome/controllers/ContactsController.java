@@ -43,7 +43,6 @@ import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
 
 public class ContactsController {
-    private static ContactsController instance = null;
     private ArrayList<Contact> contacts;
     private String mChannel = "contact";
     private String mPhone;
@@ -53,15 +52,8 @@ public class ContactsController {
     private Context context;
     private ContactsAdapter adapter;
 
-    private ContactsController() {
+    public ContactsController() {
         // Exists only to defeat instantiation.
-    }
-
-    public static ContactsController getInstance() {
-        if (instance == null) {
-            instance = new ContactsController();
-        }
-        return instance;
     }
 
     public void InitializeFragment(Context c) {
@@ -144,7 +136,8 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        PubNubController.getInstance().publish(mChannel, message, "");
+        MainActivity a = MainActivity.getMainActivity();
+        a.getPc().publish(mChannel, message, phone);
     }
 
     private void sendDeleteMessage(String phone) {
@@ -157,7 +150,8 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        PubNubController.getInstance().publish(mChannel, message, "");
+        MainActivity a = MainActivity.getMainActivity();
+        a.getPc().publish(mChannel, message, phone);
     }
 
     public void sendShareMessage(String phone, String name, boolean share) {
@@ -171,7 +165,7 @@ public class ContactsController {
             } catch (JSONException e) {
                 Log.e("PUBNUB", e.toString());
             }
-        PubNubController.getInstance().publish(mChannel, message, "");
+        MainActivity.getMainActivity().getPc().publish(mChannel, message, phone);
     }
 
     public void setmActivity(Activity mActivity) {
@@ -193,7 +187,9 @@ public class ContactsController {
                         sendDeleteMessage(c.getmPhone());
                         contacts.remove(c);
                         adapter.notifyItemRemoved(position);
-                        PubNubController.getInstance().unSubscribe(c.getmPhone(), "map");
+
+                        MainActivity a = MainActivity.getMainActivity();
+                        a.getPc().unSubscribe(c.getmPhone(), "map");
 
                         String token = mPrefs.getString("token", "");
                         RequestModel rm = new RequestModel(token, mPhone + ":" + c.getmPhone());
@@ -269,7 +265,7 @@ public class ContactsController {
                         adapter.notifyItemInserted(0);
 
                         MainActivity a = MainActivity.getMainActivity();
-                        PubNubController.getInstance().subscribe(jsonMessage.getString("phone"), "map");
+                        a.getPc().subscribe(jsonMessage.getString("phone"), "map");
 
                         JSONObject message = new JSONObject();
                         try {
@@ -279,7 +275,7 @@ public class ContactsController {
                         } catch (JSONException e) {
                             Log.e("PUBNUB", e.toString());
                         }
-                        PubNubController.getInstance().publish(mChannel, message, jsonMessage.getString("phone"));
+                        a.getPc().publish(mChannel, message, jsonMessage.getString("phone"));
                         String token = mPrefs.getString("token", "");
                         RequestModel rm = new RequestModel(token, mPhone + ":" + jsonMessage.getString("phone"));
                         ContactPostTask postTaskObject = new ContactPostTask();
@@ -317,7 +313,7 @@ public class ContactsController {
                 // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
                 MainActivity a = MainActivity.getMainActivity();
-                PubNubController.getInstance().subscribe(jsonMessage.getString("phone"), "map");
+                a.getPc().subscribe(jsonMessage.getString("phone"), "map");
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -341,11 +337,14 @@ public class ContactsController {
                         contacts.get(i).setmCan_see(jsonMessage.getBoolean("share"));
                         adapter.notifyItemChanged(i);
                         if (jsonMessage.getBoolean("share")) {
-                            PubNubController.getInstance().subscribe(phone, "map");
+                            MainActivity a = MainActivity.getMainActivity();
+                            a.getPc().subscribe(phone, "map");
                         } else {
-                            PubNubController.getInstance().unSubscribe(phone, "map");
+                            MainActivity a = MainActivity.getMainActivity();
+                            a.getPc().unSubscribe(phone, "map");
                         }
-                        PubNubController.getInstance().unSubscribe(phone, "map");
+                        MainActivity a = MainActivity.getMainActivity();
+                        a.getPc().unSubscribe(phone, "map");
                         found = true;
                     }
                 }
@@ -370,7 +369,9 @@ public class ContactsController {
                     if (contacts.get(i).getmPhone().equals(phone)) {
                         contacts.remove(i);
                         adapter.notifyItemRemoved(i);
-                        PubNubController.getInstance().unSubscribe(phone, "map");
+
+                        MainActivity a = MainActivity.getMainActivity();
+                        a.getPc().unSubscribe(phone, "map");
 
                         found = true;
                     }

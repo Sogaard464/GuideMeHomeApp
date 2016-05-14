@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import gruppe3.dmab0914.guidemehome.R;
-import gruppe3.dmab0914.guidemehome.controllers.LoginController;
 import gruppe3.dmab0914.guidemehome.models.LoginUser;
 import gruppe3.dmab0914.guidemehome.models.User;
 
@@ -51,13 +50,11 @@ public class LoginActivity extends AppCompatActivity {
     Button _loginButton;
     @Bind(R.id.link_signup)
     TextView _signupLink;
-    private LoginController lc;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        lc = new LoginController();
         ButterKnife.bind(this);
 
         _loginButton.setOnClickListener(new View.OnClickListener() {

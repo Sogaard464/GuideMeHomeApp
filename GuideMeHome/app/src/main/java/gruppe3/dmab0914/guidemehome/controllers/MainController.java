@@ -120,7 +120,8 @@ public class MainController {
                     regId = gcm.register(mActivity.getString(R.string.projectID));
                     msg = "Device registered, registration ID: " + regId;
 
-                    PubNubController.getInstance().sendRegistrationId(regId);
+                    MainActivity a = MainActivity.getMainActivity();
+                    a.getPc().sendRegistrationId(regId);
                     storeRegistrationId(regId);
                     Log.i("GCM", msg);
                 } catch (Exception ex) {
@@ -147,7 +148,9 @@ public class MainController {
                     // Remove Registration ID from memory
                     removeRegistrationId();
                     // Disable Push Notification
-                    PubNubController.getInstance().disablePushNotificationsOnChannel(regId);
+                    MainActivity a = MainActivity.getMainActivity();
+
+                    a.getPc().disablePushNotificationsOnChannel(regId);
                 } catch (Exception e) {
                 }
                 return null;

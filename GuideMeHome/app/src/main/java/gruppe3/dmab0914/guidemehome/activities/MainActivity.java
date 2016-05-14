@@ -22,7 +22,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.MainController;
+import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private MainController mc;
+    private PubNubController pc;
+    private ContactsController cc;
     private Boolean mForeground;
     private Bundle pushBundle;
 
@@ -45,12 +49,10 @@ public class MainActivity extends AppCompatActivity {
         if (pushBundle != null) {
             Set<String> keys = pushBundle.keySet();
             Iterator<String> it = keys.iterator();
-            Log.e("Bundle", "Dumping Intent start");
             while (it.hasNext()) {
                 final String key = it.next();
                 if (key.equals("Message")) {
                     if (pushBundle.getString(key).contains("wants to be guided home")) {
-                        //TODO Acknowledge that you want to guide
                         new AlertDialog.Builder(this)
                                 .setTitle("Guide friend?")
                                 .setMessage("Will you guide your friend home?")
@@ -69,9 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 }
-                Log.e("Bundle", "[" + key + "=" + pushBundle.get(key) + "]");
             }
-            Log.e("Bundle", "Dumping Intent end");
         }
     }
 
@@ -90,8 +90,11 @@ public class MainActivity extends AppCompatActivity {
         onNewIntent(getIntent());
         ma = this;
         mc = new MainController();
+
         mc.setmActivity(getMainActivity());
         if (mc.isTokenValid() == true) {
+            cc = new ContactsController();
+            pc = new PubNubController();
             initiliaseUI();
             mc.register();
         } else {
@@ -122,14 +125,16 @@ public class MainActivity extends AppCompatActivity {
     public void logoutMethod(MenuItem mi) {
         Toast.makeText(getBaseContext(), R.string.logout, Toast.LENGTH_LONG).show();
         mc.unregister();
+        pc.unSubscribeAll();
         SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         prefsEditor.commit();
         Intent i = new Intent(MainActivity.this, MainActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         finish();
         startActivity(i);
+
     }
 
 
@@ -138,6 +143,8 @@ public class MainActivity extends AppCompatActivity {
         //if loginactivity ends succesfully initialize UI
         if (requestCode == 1) {
             if (resultCode == 1) {
+                pc = new PubNubController();
+                cc = new ContactsController();
                 initiliaseUI();
             }
         }
@@ -186,5 +193,13 @@ public class MainActivity extends AppCompatActivity {
 
     public Boolean getmForeground() {
         return mForeground;
+    }
+
+    public PubNubController getPc() {
+        return pc;
+    }
+
+    public ContactsController getCc() {
+        return cc;
     }
 }

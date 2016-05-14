@@ -51,6 +51,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.R;
+import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.models.Contact;
@@ -145,43 +146,48 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         }
         final AutoCompleteTextView destination = (AutoCompleteTextView) v.findViewById(R.id.actvDestination);
         contact = (AutoCompleteTextView) v.findViewById(R.id.actvContacts);
-        final ContactsController cc = ContactsController.getInstance();
+        MainActivity a = MainActivity.getMainActivity();
+
+        final ContactsController cc = a.getCc();
         final Button getRoute = (Button) v.findViewById(R.id.home_button);
         getRoute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                int contactPhone = 0;
                 if (destination.getText().length() > 0 && contact.getText().length() > 0) {
                     Boolean contains = false;
                     String phone = "";
                     for (String s : contacts) {
                         if (s.equals(contact.getText().toString())) {
                             contains = true;
-                            ArrayList<Contact> contacts = ContactsController.getInstance().getContacts();
+                            ArrayList<Contact> contacts = cc.getContacts();
                             for (int i = 0; i < contacts.size() || phone == ""; i++)
                                 if (contacts.get(i).getName().equals(contact.getText().toString()))
                                     phone = contacts.get(i).getmPhone();
                         }
                     }
                     if (contains) {
-                        //TODO Subscribe to contact channel
                         if (location != null) {
                             destinationString = destination.getText().toString().replace(" ", "+");
                             locationString = location.latitude + "," + location.longitude;
                             getRoute(destinationString, locationString);
-                            PubNubController.getInstance().sendFollowMeNotification(phone, locationString, destinationString);
+                        }
+                        MainActivity a = MainActivity.getMainActivity();
+
+                        a.getPc().sendFollowMeNotification(phone, locationString, destinationString);
                         } else {
                             Toast.makeText(getContext(), R.string.cannot_get_location, Toast.LENGTH_LONG).show();
                         }
                     }
                 }
-            }
+
         });
         return v;
     }
 
     public void getUpdatedContacts() {
-        ContactsController cc = ContactsController.getInstance();
+        MainActivity a = MainActivity.getMainActivity();
+
+        ContactsController cc = a.getCc();
         ArrayList<String> ar = new ArrayList<>();
         for (Contact c : cc.getContacts()) {
             ar.add(c.getName());
@@ -440,7 +446,9 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 }
             }
             if (!onRoute) {
-                PubNubController.getInstance().sendLeftRouteNotification(location);
+                MainActivity a = MainActivity.getMainActivity();
+
+                a.getPc().sendLeftRouteNotification(location);
             }
         }
     }
