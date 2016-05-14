@@ -52,10 +52,10 @@ public class MainActivity extends AppCompatActivity {
             while (it.hasNext()) {
                 final String key = it.next();
                 if (key.equals("Message")) {
-                    if (pushBundle.getString(key).contains("wants to be guided home")) {
+                    if (pushBundle.getString(key).contains(getString(R.string.wants_to_be_guided_home))) {
                         new AlertDialog.Builder(this)
-                                .setTitle("Guide friend?")
-                                .setMessage("Will you guide your friend home?")
+                                .setTitle(getString(R.string.title_guide_friend))
+                                .setMessage(getString(R.string.will_you_guide))
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");

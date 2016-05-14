@@ -53,7 +53,6 @@ import java.util.logging.Logger;
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
-import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 
 
@@ -81,7 +80,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mActivity = activity;
-        Log.d("DRF", "Attached!");
     }
 
     @Override
@@ -92,9 +90,9 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 false);
         //Get sharedpreferences in private mode (0)
 
-        mPrefs = getContext().getSharedPreferences("user", 0);
-        mPhone = mPrefs.getString("phone", "");
-        mName = mPrefs.getString("username", "");
+        mPrefs = getContext().getSharedPreferences((MainActivity.getMainActivity().getString(R.string.pref_file)), 0);
+        mPhone = mPrefs.getString(MainActivity.getMainActivity().getString(R.string.pref_phone), "");
+        mName = mPrefs.getString(MainActivity.getMainActivity().getString(R.string.pref_username),"");
         mMapView = (MapView) v.findViewById(R.id.location_map);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();
@@ -469,8 +467,8 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         @Override
         protected void onPostExecute(final String par) {
             new AlertDialog.Builder(getContext())
-                    .setTitle("Guide friend?")
-                    .setMessage("Will you guide your friend home?")
+                    .setTitle(MainActivity.getMainActivity().getString(R.string.title_guide_friend))
+                    .setMessage(MainActivity.getMainActivity().getString(R.string.will_you_guide))
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             drawContactRoute(par);

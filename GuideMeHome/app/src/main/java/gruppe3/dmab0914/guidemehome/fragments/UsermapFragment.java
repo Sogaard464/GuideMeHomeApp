@@ -55,7 +55,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mActivity = activity;
-        Log.d("UMF", "Attached!");
     }
 
     @Override
@@ -65,9 +64,9 @@ public class UsermapFragment extends Fragment implements LocationListener {
         View v = inflater.inflate(R.layout.fragment_map, container,
                 false);
         //Get sharedpreferences in private mode (0)
-        mPrefs = getContext().getSharedPreferences("user", 0);
-        mPhone = mPrefs.getString("phone", "");
-        mName = mPrefs.getString("username", "");
+        mPrefs = getContext().getSharedPreferences((MainActivity.getMainActivity().getString(R.string.pref_file)), 0);
+        mPhone = mPrefs.getString((MainActivity.getMainActivity().getString(R.string.pref_phone)), "");
+        mName = mPrefs.getString((MainActivity.getMainActivity().getString(R.string.pref_username)), "");
         mMapView = (MapView) v.findViewById(R.id.location_map);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();

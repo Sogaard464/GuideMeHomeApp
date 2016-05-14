@@ -100,7 +100,7 @@ public class PubNubController {
                 DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
                 jsonMessage = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
                 String msg = jsonMessage.getString("GCMSays");
-                if (msg.contains("wants to be guided home")) {
+                if (msg.contains(MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home))) {
                     drf.showAlertDialog(jsonMessage.getString("Arg2"));
                 }
             } catch (JSONException e) {
@@ -111,8 +111,8 @@ public class PubNubController {
     };
     public PubNubController() {
         mPrefs = MainActivity.getMainActivity().getBaseContext().getSharedPreferences("user", 0);
-        mPhone = mPrefs.getString("phone", "");
-        mName = mPrefs.getString("username", "");
+        mPhone = mPrefs.getString((MainActivity.getMainActivity().getString(R.string.pref_phone)), "");
+        mName = mPrefs.getString((MainActivity.getMainActivity().getString(R.string.pref_username)), "");
 
         mContactChannel = mPhone + "-contact";
         mMapChannel = mPhone + "-map";
@@ -121,7 +121,7 @@ public class PubNubController {
         mPubnub.setUUID(mPhone);
         try {
             Gson gson = new Gson();
-            ArrayList<Contact> contacts = gson.fromJson(mPrefs.getString("contacts", ""), new TypeToken<ArrayList<Contact>>() {
+            ArrayList<Contact> contacts = gson.fromJson(mPrefs.getString((MainActivity.getMainActivity().getString(R.string.pref_contacts)), ""), new TypeToken<ArrayList<Contact>>() {
             }.getType());
             if (contacts != null) {
                 for (Contact c : contacts) {
@@ -225,7 +225,7 @@ public class PubNubController {
         PnGcmMessage gcmMessage = new PnGcmMessage();
         JSONObject jso = new JSONObject();
         try {
-            jso.put("GCMSays", mName + " is leaving the route");
+            jso.put("GCMSays", mName + (MainActivity.getMainActivity().getString(R.string.is_leaving_route)));
             jso.put("Arg2", location);
         } catch (JSONException e) {
         }

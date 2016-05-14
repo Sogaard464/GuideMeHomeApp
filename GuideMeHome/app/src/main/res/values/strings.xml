@@ -37,5 +37,13 @@
     <string name="cannot_get_location">Cannot acquire location</string>
     <string name="projectID">514664598062</string>
     <string name="wants_to_be_guided_home">" wants to be guided home."</string>
+    <string name="will_you_guide">Will you guide your friend home?</string>
+    <string name="pref_username">username</string>
+    <string name="pref_phone">phone</string>
+    <string name="pref_token">token</string>
+    <string name="pref_contacts">contacts</string>
+    <string name="title_guide_friend">Guide friend?</string>
+    <string name="pref_file">user</string>
+    <string name="is_leaving_route">" is leaving the route"</string>
 
 </resources>

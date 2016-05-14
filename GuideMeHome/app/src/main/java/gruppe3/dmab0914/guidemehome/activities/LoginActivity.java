@@ -117,7 +117,6 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // disable going back to the MainActivity
         moveTaskToBack(true);
     }
 
@@ -226,13 +225,13 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 rd.close();
                 User u = gson.fromJson(response.toString(), User.class);
-                SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
+                SharedPreferences mPrefs = getSharedPreferences(getString(R.string.pref_file), MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.clear();
-                prefsEditor.putString("username", u.getName());
-                prefsEditor.putString("phone", u.getPhone());
-                prefsEditor.putString("token", u.getToken());
-                prefsEditor.putString("contacts", gson.toJson(u.getContacts()));
+                prefsEditor.putString(getString(R.string.pref_username), u.getName());
+                prefsEditor.putString(getString(R.string.pref_phone), u.getPhone());
+                prefsEditor.putString(getString(R.string.pref_token), u.getToken());
+                prefsEditor.putString(getString(R.string.pref_contacts), gson.toJson(u.getContacts()));
                 prefsEditor.commit();
 
             } catch (SocketTimeoutException ex) {
