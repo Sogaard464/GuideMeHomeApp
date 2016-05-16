@@ -94,7 +94,7 @@ public class ContactsController {
         // custom dialog
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_addcontact);
-        dialog.setTitle("Add Contact...");
+        dialog.setTitle(R.string.add_contact_title);
         // set the custom dialog components - text, image and button
         final EditText phoneNumber = (EditText) dialog.findViewById(R.id.phoneText);
         Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
@@ -103,6 +103,22 @@ public class ContactsController {
             @Override
             public void onClick(View v) {
                 String phone = phoneNumber.getText().toString();
+                if(phone.equals(mPhone)) {
+                    dialog.dismiss();
+                    new AlertDialog.Builder(context)
+                            .setTitle(mActivity.getString(R.string.cant_add_youself_title))
+                            .setMessage(mActivity.getString(R.string.cant_add_yourself_text))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+
+                }
+                else{
+
                 boolean found = false;
                 if (contacts.size() != 0) {
                     for (int i = 0; i < contacts.size() && !found; i++) {
@@ -120,7 +136,7 @@ public class ContactsController {
                     sendAddMessage(phone);
                 }
                 dialog.dismiss();
-            }
+            } }
 
         });
         dialog.show();
@@ -253,6 +269,12 @@ public class ContactsController {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            Button denyButton = (Button) dialog.findViewById(R.id.dialogButtonDeny);
+            denyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                    }});
             Button allowButton = (Button) dialog.findViewById(R.id.dialogButtonAllow);
             // if button is clicked, close the custom dialog
             allowButton.setOnClickListener(new View.OnClickListener() {

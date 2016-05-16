@@ -42,7 +42,6 @@ import gruppe3.dmab0914.guidemehome.models.User;
  * Created by Lasse on 27-04-2016.
  */
 public class MainController {
-    private ArrayList<Contact> contacts = new ArrayList<>();
     private SharedPreferences mPrefs = MainActivity.getMainActivity().getSharedPreferences("user", 0);
     private Activity mActivity;
     private GoogleCloudMessaging gcm;
@@ -269,7 +268,6 @@ public class MainController {
                 }
                 rd.close();
                 User u = gson.fromJson(response.toString(), User.class);
-                contacts = u.getContacts();
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.clear();
                 prefsEditor.putString("username", u.getName());

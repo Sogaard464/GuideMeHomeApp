@@ -35,15 +35,17 @@
     <string name="password_not_long_enough">between 4 and 10 alphanumeric characters</string>
     <string name="login_failed_toast">Login failed</string>
     <string name="cannot_get_location">Cannot acquire location</string>
-    <string name="projectID">514664598062</string>
-    <string name="wants_to_be_guided_home">" wants to be guided home."</string>
-    <string name="will_you_guide">Will you guide your friend home?</string>
-    <string name="pref_username">username</string>
-    <string name="pref_phone">phone</string>
-    <string name="pref_token">token</string>
-    <string name="pref_contacts">contacts</string>
+    <string name="wants_to_be_guided_home">" wants to be guided."</string>
+    <string name="will_you_guide">Will you guide your friend?</string>
+    <string name="pref_username" translatable="false">username</string>
+    <string name="pref_phone" translatable="false">phone</string>
+    <string name="pref_token" translatable="false">token</string>
+    <string name="pref_contacts" translatable="false">contacts</string>
     <string name="title_guide_friend">Guide friend?</string>
-    <string name="pref_file">user</string>
+    <string name="pref_file" translatable="false">user</string>
     <string name="is_leaving_route">" is leaving the route"</string>
+    <string name="cant_add_youself_title">Can\'t add yourself</string>
+    <string name="cant_add_yourself_text">You cannot add yourself, please enter a new phone number!</string>
+    <string name="add_contact_title">Add Contact...</string>
 
 </resources>

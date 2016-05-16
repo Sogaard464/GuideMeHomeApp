@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="item_click_support" type="id" />
+    <string name="drf_tag" translatable="false">android:switcher:2131558551:2</string>
+    <string name="projectID" translatable="false">514664598062</string>
+
 </resources>

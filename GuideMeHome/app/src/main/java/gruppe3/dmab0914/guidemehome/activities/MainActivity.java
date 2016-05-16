@@ -26,7 +26,6 @@ import gruppe3.dmab0914.guidemehome.controllers.ContactsController;
 import gruppe3.dmab0914.guidemehome.controllers.MainController;
 import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
-
 public class MainActivity extends AppCompatActivity {
     public static MainActivity ma;
     private Toolbar toolbar;
@@ -37,11 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private ContactsController cc;
     private Boolean mForeground;
     private Bundle pushBundle;
-
     public static MainActivity getMainActivity() {
         return ma;
     }
-
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -58,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                                 .setMessage(getString(R.string.will_you_guide))
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
-                                        DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+                                        DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
                                         drf.drawContactRoute(pushBundle.getString("Arg2"));
                                     }
                                 })
@@ -126,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(getBaseContext(), R.string.logout, Toast.LENGTH_LONG).show();
         mc.unregister();
         pc.unSubscribeAll();
-        SharedPreferences mPrefs = getSharedPreferences("user", MODE_PRIVATE);
+        SharedPreferences mPrefs = getSharedPreferences(MainActivity.getMainActivity().getString(R.string.pref_file), MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         prefsEditor.commit();
@@ -159,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int arg0) {
                 if (arg0 == 2) {
-                    DrawRouteFragment drf = (DrawRouteFragment) getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+                    DrawRouteFragment drf = (DrawRouteFragment) getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
                     drf.getUpdatedContacts();
                 }
             }

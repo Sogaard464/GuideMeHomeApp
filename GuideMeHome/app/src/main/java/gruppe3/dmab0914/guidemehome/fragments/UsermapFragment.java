@@ -34,7 +34,6 @@ import java.util.Map;
 
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
-import gruppe3.dmab0914.guidemehome.controllers.PubNubController;
 
 
 public class UsermapFragment extends Fragment implements LocationListener {
@@ -46,7 +45,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
     private String mName;
     private SharedPreferences mPrefs;
     private Map<String, PolylineOptions> polylines = new HashMap<>();
-    ;
     private Map<String, Marker> markers = new HashMap<>();
     private Activity mActivity;
 
@@ -121,7 +119,6 @@ public class UsermapFragment extends Fragment implements LocationListener {
 
     public void drawRouteRunnable(LatLng mLatLng, String phone, String name) {
         mActivity.runOnUiThread(new DrawRoutesRunnable(mLatLng, phone, name));
-
     }
 
     private void updatePolyline(LatLng loc, String phone) {

@@ -35,4 +35,11 @@
     <string name="enter_valid_phone">indtast gyldigt telefonnummer</string>
     <string name="create_account_toast">Opretter konto... Vent venligst!</string>
     <string name="cannot_get_location">Lokation kan ikke findes</string>
+    <string name="cant_add_yourself_text">Du kan ikke tilføje dig selv, indtast venligt et nyt nummer!</string>
+    <string name="cant_add_youself_title">Kan ikke tilføje dig selv</string>
+    <string name="is_leaving_route">" forlader ruten"</string>
+    <string name="title_guide_friend">Guide ven?</string>
+    <string name="wants_to_be_guided_home">" vil guides."</string>
+    <string name="will_you_guide">Vil du guide din ven?</string>
+    <string name="add_contact_title">Tilføj kontakt...</string>
 </resources>
