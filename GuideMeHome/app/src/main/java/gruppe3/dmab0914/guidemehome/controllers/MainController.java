@@ -38,9 +38,6 @@ import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.models.User;
 
-/**
- * Created by Lasse on 27-04-2016.
- */
 public class MainController {
     private SharedPreferences mPrefs = MainActivity.getMainActivity().getSharedPreferences("user", 0);
     private Activity mActivity;

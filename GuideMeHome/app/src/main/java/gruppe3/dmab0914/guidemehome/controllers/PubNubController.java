@@ -85,7 +85,7 @@ public class PubNubController {
                 mLat = jsonMessage.getDouble("lat");
                 mLng = jsonMessage.getDouble("lng");
                 LatLng mLatLng = new LatLng(mLat, mLng);
-                UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:1");
+                UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.umf_tag));
                 umf.drawRouteRunnable(mLatLng, phone, name);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -97,7 +97,7 @@ public class PubNubController {
         public void successCallback(String channel, Object message) {
             JSONObject jsonMessage = (JSONObject) message;
             try {
-                DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag("android:switcher:2131558551:2");
+                DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
                 jsonMessage = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
                 String msg = jsonMessage.getString("GCMSays");
                 if (msg.contains(MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home))) {

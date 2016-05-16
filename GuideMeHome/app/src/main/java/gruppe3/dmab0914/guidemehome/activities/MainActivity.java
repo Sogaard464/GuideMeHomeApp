@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int arg0) {
                 if (arg0 == 2) {
-                    DrawRouteFragment drf = (DrawRouteFragment) getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
+                    DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
                     drf.getUpdatedContacts();
                 }
             }
