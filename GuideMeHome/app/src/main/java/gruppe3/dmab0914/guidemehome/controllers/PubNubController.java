@@ -1,15 +1,7 @@
 package gruppe3.dmab0914.guidemehome.controllers;
 
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
@@ -24,25 +16,12 @@ import com.pubnub.api.PubnubException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
-import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 import gruppe3.dmab0914.guidemehome.models.Contact;
-import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
 
 public class PubNubController {
@@ -101,8 +80,8 @@ public class PubNubController {
                 mLat = jsonMessage.getDouble("lat");
                 mLng = jsonMessage.getDouble("lng");
                 LatLng mLatLng = new LatLng(mLat, mLng);
-                UsermapFragment umf = (UsermapFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.umf_tag));
-                umf.drawRouteRunnable(mLatLng, phone, name);
+                DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
+                drf.drawRouteRunnable(mLatLng, phone, name);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

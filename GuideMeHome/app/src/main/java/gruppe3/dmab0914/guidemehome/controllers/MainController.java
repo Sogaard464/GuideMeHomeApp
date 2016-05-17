@@ -34,8 +34,6 @@ import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.fragments.ContactsFragment;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
-import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
-import gruppe3.dmab0914.guidemehome.models.Contact;
 import gruppe3.dmab0914.guidemehome.models.User;
 
 public class MainController {
@@ -73,8 +71,7 @@ public class MainController {
     public void setupViewPager(ViewPager viewPager, FragmentManager fm) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(fm);
         adapter.addFragment(new ContactsFragment(), mActivity.getString(R.string.contac_fragment_title));
-        adapter.addFragment(new UsermapFragment(), mActivity.getString(R.string.map_fragment_title));
-        adapter.addFragment(new DrawRouteFragment(), mActivity.getString(R.string.route_fragment_title));
+        adapter.addFragment(new DrawRouteFragment(), mActivity.getString(R.string.map_fragment_title));
         viewPager.setOffscreenPageLimit(2);
         viewPager.setAdapter(adapter);
 

@@ -47,8 +47,8 @@
     <string name="cant_add_youself_title">Can\'t add yourself</string>
     <string name="cant_add_yourself_text">You cannot add yourself, please enter a new phone number!</string>
     <string name="add_contact_title">Add Contact...</string>
-    <string name="umf_tag" translatable="false">android:switcher:2131558553:1</string>
-    <string name="drf_tag" translatable="false">android:switcher:2131558553:2</string>
+   <!-- <string name="umf_tag" translatable="false">android:switcher:2131558553:1</string> -->
+    <string name="drf_tag" translatable="false">android:switcher:2131558553:1</string>
     <string name="projectID" translatable="false">514664598062</string>
     <string name="left_designated_route">You have left the designated route</string>
     <string name="are_you_ok">Are you OK?</string>

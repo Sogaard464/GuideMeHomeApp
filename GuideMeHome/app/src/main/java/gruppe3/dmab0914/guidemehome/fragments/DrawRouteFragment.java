@@ -48,7 +48,9 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +64,9 @@ import gruppe3.dmab0914.guidemehome.models.Contact;
 public class DrawRouteFragment extends Fragment implements LocationListener {
 
     private static final String TAG = "DRF";
+    private String mMapChannel = "map";
+    private Map<String, PolylineOptions> polylines = new HashMap<>();
+    private Map<String, Marker> markers = new HashMap<>();
     private MapView mMapView;
     private String guidePhone;
     private LatLng location;
@@ -79,7 +84,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private JSONObject jsonMessage;
     private AutoCompleteTextView contact;
     private String urlString;
-    private Marker m;
 
     @Override
     public void onAttach(Activity activity) {
@@ -184,7 +188,36 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         });
         return v;
     }
+    public void drawRouteRunnable(LatLng mLatLng, String phone, String name) {
+        mActivity.runOnUiThread(new DrawPersonRoutesRunnable(mLatLng, phone, name));
+    }
 
+    private void updatePolyline(LatLng loc, String phone) {
+        PolylineOptions po = polylines.get(phone);
+        if (po == null) {
+            po = new PolylineOptions();
+            po.color(Color.BLUE).width(10);
+        } else {
+            polylines.remove(phone);
+        }
+        po.add(loc);
+        mGoogleMap.addPolyline(po);
+        polylines.put(phone, po);
+
+    }
+
+    private void updateMarker(LatLng mLatLng, String name, String phone) {
+        Marker m = markers.get(phone);
+        if (m != null) {
+            m.remove();
+        }
+        markers.remove(phone);
+        m = mGoogleMap.addMarker(new MarkerOptions().position(mLatLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
+                .title(name));
+        m.showInfoWindow();
+        markers.put(phone, m);
+    }
     public void getUpdatedContacts() {
         MainActivity a = MainActivity.getMainActivity();
 
@@ -272,13 +305,40 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     @Override
     public void onLocationChanged(Location newLocation) {
         location = new LatLng(newLocation.getLatitude(), newLocation.getLongitude());
-        if (polylineToAdd != null) {
+        mActivity.runOnUiThread(new LocationChangeRunnable(newLocation));
+
+        if (guidePhone != null) {
             //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
             mActivity.runOnUiThread(new IsOnRouteRunable());
 
         }
     }
+    public class LocationChangeRunnable implements Runnable {
+        private Location location;
 
+        public LocationChangeRunnable(Location location) {
+            this.location = location;
+        }
+
+        public void run() {
+            broadcastLocation(location);
+        }
+    }
+    private void broadcastLocation(Location location) {
+        JSONObject message = new JSONObject();
+        try {
+            message.put("lat", location.getLatitude());
+            message.put("lng", location.getLongitude());
+            message.put("alt", location.getAltitude());
+            message.put("phone", mPhone);
+            message.put("name", mName);
+        } catch (JSONException e) {
+            Log.e("PUBNUB", e.toString());
+        }
+        MainActivity a = MainActivity.getMainActivity();
+
+        a.getPc().publish(mMapChannel, message, "");
+    }
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
@@ -319,8 +379,10 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         }
 
         public void run() {
-            mGoogleMap.clear();
-            polylineToAdd = mGoogleMap.addPolyline(new PolylineOptions().addAll(lines).width(20).color(Color.RED));
+            polylines.remove("guide");
+            PolylineOptions po = new PolylineOptions().addAll(lines).width(20).color(Color.RED);
+            polylineToAdd = mGoogleMap.addPolyline(po);
+            polylines.put("guide",po);
 
         }
     }
@@ -499,4 +561,21 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                     .show();
         }
     }
+    public class DrawPersonRoutesRunnable implements Runnable {
+        private LatLng loc;
+        private String phone;
+        private String name;
+
+        public DrawPersonRoutesRunnable(LatLng location, String phone, String name) {
+            loc = location;
+            this.phone = phone;
+            this.name = name;
+        }
+
+        public void run() {
+            updatePolyline(loc, phone);
+            updateMarker(loc, name, phone);
+        }
+    }
+
 }
