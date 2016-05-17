@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,6 +85,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private JSONObject jsonMessage;
     private AutoCompleteTextView contact;
     private String urlString;
+    private Boolean reacted;
 
     @Override
     public void onAttach(Activity activity) {
@@ -383,7 +385,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
             PolylineOptions po = new PolylineOptions().addAll(lines).width(20).color(Color.RED);
             polylineToAdd = mGoogleMap.addPolyline(po);
             polylines.put("guide",po);
-
         }
     }
 
@@ -509,11 +510,13 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 }
             }
             if (!onRoute) {
-                new AlertDialog.Builder(getContext())
+                reacted = false;
+                final AlertDialog ab = new AlertDialog.Builder(getContext())
                         .setTitle(mActivity.getString(R.string.left_designated_route))
                         .setMessage(mActivity.getString(R.string.are_you_ok))
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
+                                reacted = true;
                                 MainActivity a = MainActivity.getMainActivity();
                                 a.getPc().sendLeftRouteNotification(location,true);
                             }
@@ -526,6 +529,23 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                         })
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
+
+                Thread t = new Thread() {
+                    public void run() {
+                        try {
+                            Thread.sleep(120000);
+                            if(reacted == false){
+                                ab.dismiss();
+                                MainActivity a = MainActivity.getMainActivity();
+                                a.getPc().sendLeftRouteNotification(location,false);
+                            }
+                        } catch(InterruptedException v) {
+                            System.out.println(v);
+                        }
+                    }
+                };
+
+                t.start();
             }
         }
     }
