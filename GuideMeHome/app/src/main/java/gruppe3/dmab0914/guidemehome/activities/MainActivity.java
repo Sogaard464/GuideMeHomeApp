@@ -35,6 +35,12 @@ public class MainActivity extends AppCompatActivity {
     private ContactsController cc;
     private Boolean mForeground;
     private Bundle pushBundle;
+    private Boolean loggedIn = false;
+
+    public Boolean getLoggedIn() {
+        return loggedIn;
+    }
+
     public static MainActivity getMainActivity() {
         return ma;
     }
@@ -92,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
             pc = new PubNubController();
             initiliaseUI();
             mc.register();
+            loggedIn = true;
         } else {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
@@ -119,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void logoutMethod(MenuItem mi) {
         Toast.makeText(getBaseContext(), R.string.logout, Toast.LENGTH_LONG).show();
+        loggedIn = false;
         mc.unregister();
         pc.unSubscribeAll();
         SharedPreferences mPrefs = getSharedPreferences(MainActivity.getMainActivity().getString(R.string.pref_file), MODE_PRIVATE);
@@ -138,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
         //if loginactivity ends succesfully initialize UI
         if (requestCode == 1) {
             if (resultCode == 1) {
+                loggedIn = true;
                 pc = new PubNubController();
                 cc = new ContactsController();
                 initiliaseUI();

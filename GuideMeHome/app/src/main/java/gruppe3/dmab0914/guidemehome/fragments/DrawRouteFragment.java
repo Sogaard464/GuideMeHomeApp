@@ -306,13 +306,15 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
     @Override
     public void onLocationChanged(Location newLocation) {
-        location = new LatLng(newLocation.getLatitude(), newLocation.getLongitude());
-        mActivity.runOnUiThread(new LocationChangeRunnable(newLocation));
+        if(MainActivity.getMainActivity().getLoggedIn()== true) {
+            location = new LatLng(newLocation.getLatitude(), newLocation.getLongitude());
+            mActivity.runOnUiThread(new LocationChangeRunnable(newLocation));
 
-        if (guidePhone != null) {
-            //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
-            mActivity.runOnUiThread(new IsOnRouteRunable());
+            if (guidePhone != null) {
+                //  IsOnRouteTask isOnRouteTask = new IsOnRouteTask();
+                mActivity.runOnUiThread(new IsOnRouteRunable());
 
+            }
         }
     }
     public class LocationChangeRunnable implements Runnable {
@@ -338,8 +340,8 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
             Log.e("PUBNUB", e.toString());
         }
         MainActivity a = MainActivity.getMainActivity();
+            a.getPc().publish(mMapChannel, message, "");
 
-        a.getPc().publish(mMapChannel, message, "");
     }
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
