@@ -53,7 +53,6 @@ public class ContactsController {
     private ContactsAdapter adapter;
 
     public ContactsController() {
-        // Exists only to defeat instantiation.
     }
 
     public void InitializeFragment(Context c) {
@@ -235,7 +234,9 @@ public class ContactsController {
     public void showAcceptDialog(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
     }
-
+public void showLeftDialog(String title,String message){
+    mActivity.runOnUiThread(new LeftRouteDialogRunnable(title,message));
+}
     public void acceptedRunnable(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new AcceptedRunable(jsonMessage));
     }
@@ -558,5 +559,38 @@ public class ContactsController {
         }
 
 
+    }
+    public class LeftRouteDialogRunnable implements Runnable {
+        private String title;
+        private String message;
+        public LeftRouteDialogRunnable(String title, String message) {
+            this.title = title;
+            this.message = message;
+        }
+
+        public void run() {
+            final Dialog dialog = new Dialog(context);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
+            dialog.setContentView(R.layout.dialog_allowcontact);
+            dialog.setTitle(title);
+
+            // set the custom dialog components - text, image and button
+            final TextView textview = (TextView) dialog.findViewById(R.id.textView);
+            textview.setText(message);
+            Button denyButton = (Button) dialog.findViewById(R.id.dialogButtonDeny);
+            denyButton.setVisibility(View.GONE);
+            Button allowButton = (Button) dialog.findViewById(R.id.dialogButtonAllow);
+            allowButton.setText("OK");
+            // if button is clicked, close the custom dialog
+            allowButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.show();
+        }
     }
 }

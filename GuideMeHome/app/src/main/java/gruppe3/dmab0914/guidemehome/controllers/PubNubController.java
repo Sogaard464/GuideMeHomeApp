@@ -1,7 +1,15 @@
 package gruppe3.dmab0914.guidemehome.controllers;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
@@ -16,17 +24,27 @@ import com.pubnub.api.PubnubException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import gruppe3.dmab0914.guidemehome.R;
 import gruppe3.dmab0914.guidemehome.activities.MainActivity;
 import gruppe3.dmab0914.guidemehome.fragments.DrawRouteFragment;
 import gruppe3.dmab0914.guidemehome.fragments.UsermapFragment;
 import gruppe3.dmab0914.guidemehome.models.Contact;
+import gruppe3.dmab0914.guidemehome.vos.RequestModel;
 
-/**
- * Created by Lasse on 13-05-2016.
- */
+
 public class PubNubController {
     private static String TAG = "PUBNUB";
     private Pubnub mPubnub;
@@ -42,7 +60,6 @@ public class PubNubController {
         public void successCallback(String channel, Object response) {
             Log.d(TAG, response.toString());
         }
-
         @Override
         public void errorCallback(String channel, PubnubError error) {
             Log.e(TAG, error.toString());
@@ -55,7 +72,6 @@ public class PubNubController {
             jsonMessage = (JSONObject) message;
             try {
                 MainActivity a = MainActivity.getMainActivity();
-
                 ContactsController cc = a.getCc();
                 if (jsonMessage.getString("command").equals("add")) {
                     cc.showAcceptDialog(jsonMessage);
@@ -94,14 +110,28 @@ public class PubNubController {
     };
     Callback routeReceivedCallback = new Callback() {
         @Override
-        public void successCallback(String channel, Object message) {
+        public void successCallback(final String channel, Object message) {
             JSONObject jsonMessage = (JSONObject) message;
+            JSONObject jsonMessagePush = null;
             try {
-                DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
-                jsonMessage = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
-                String msg = jsonMessage.getString("GCMSays");
+                jsonMessagePush = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
+                String msg = jsonMessagePush.getString("GCMSays");
                 if (msg.contains(MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home))) {
-                    drf.showAlertDialog(jsonMessage.getString("Arg2"));
+                    DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
+                    drf.showAlertDialog(msg,jsonMessagePush.getString("Arg2"));
+                }
+                else if(msg.contains(MainActivity.getMainActivity().getString(R.string.left_the_route_is_okay))){
+                    MainActivity a = MainActivity.getMainActivity();
+                    ContactsController cc = a.getCc();
+                    cc.showLeftDialog(MainActivity.getMainActivity().getString(R.string.left_designated_route),msg);
+
+                }
+                else if(msg.contains(MainActivity.getMainActivity().getString(R.string.left_route_needs_help))){
+                    MainActivity a = MainActivity.getMainActivity();
+                    ContactsController cc = a.getCc();
+                    cc.showLeftDialog(MainActivity.getMainActivity().getString(R.string.left_designated_route),msg);
+
+
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -184,7 +214,6 @@ public class PubNubController {
                     mPubnub.publish(mContactChannel, message, publishCallback);
                 case "route":
                     mPubnub.publish(mRouteChannel, message, publishCallback);
-
             }
         } else {
             switch (channel) {
@@ -221,12 +250,13 @@ public class PubNubController {
         }
     }
 
-    public void sendLeftRouteNotification(LatLng location) {
+    public void sendLeftRouteNotification(LatLng location, boolean ok) {
         PnGcmMessage gcmMessage = new PnGcmMessage();
         JSONObject jso = new JSONObject();
+        if(ok){
         try {
-            jso.put("GCMSays", mName + (MainActivity.getMainActivity().getString(R.string.is_leaving_route)));
-            jso.put("Arg2", location);
+            jso.put("GCMSays", mName + MainActivity.getMainActivity().getString(R.string.left_the_route_is_okay));
+            jso.put("Arg2", location.latitude+","+location.longitude);
         } catch (JSONException e) {
         }
         gcmMessage.setData(jso);
@@ -241,6 +271,26 @@ public class PubNubController {
         } catch (PubnubException e) {
             e.printStackTrace();
         }
+        }
+        else{
+            try {
+                jso.put("GCMSays", mName + MainActivity.getMainActivity().getString(R.string.left_route_needs_help));
+                jso.put("Arg2", location.latitude+","+location.longitude);
+            } catch (JSONException e) {
+            }
+            gcmMessage.setData(jso);
+
+            PnMessage message = new PnMessage(
+                    mPubnub,
+                    mGuidePhone + "-route",
+                    publishCallback,
+                    gcmMessage);
+            try {
+                message.publish();
+            } catch (PubnubException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void sendRegistrationId(String regId) {
@@ -253,5 +303,5 @@ public class PubNubController {
         mPubnub.disablePushNotificationsOnChannel(mPhone + "-route", regId);
 
     }
-}
+    }
 

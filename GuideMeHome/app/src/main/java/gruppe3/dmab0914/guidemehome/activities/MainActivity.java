@@ -13,7 +13,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -65,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
                                 })
                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                 .show();
-
                     }
                 }
             }
@@ -187,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
     public Boolean getmForeground() {
         return mForeground;
     }

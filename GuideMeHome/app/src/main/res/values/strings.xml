@@ -50,4 +50,10 @@
     <string name="umf_tag" translatable="false">android:switcher:2131558553:1</string>
     <string name="drf_tag" translatable="false">android:switcher:2131558553:2</string>
     <string name="projectID" translatable="false">514664598062</string>
+    <string name="left_designated_route">You have left the designated route</string>
+    <string name="are_you_ok">Are you OK?</string>
+    <string name="cmd_route_left_ok">route_left_ok</string>
+    <string name="cmd_route_left_help">route_left_help</string>
+    <string name="left_the_route_is_okay">" left the route, but is okay"</string>
+    <string name="left_route_needs_help">" left the route, and needs help!"</string>
 </resources>

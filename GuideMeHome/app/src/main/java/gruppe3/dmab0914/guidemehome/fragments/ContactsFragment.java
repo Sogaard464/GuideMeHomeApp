@@ -19,19 +19,16 @@ import gruppe3.dmab0914.guidemehome.lists.ItemClickSupport;
 public class ContactsFragment extends Fragment {
 
     ContactsController cc;
-
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (cc == null) {
             MainActivity a = MainActivity.getMainActivity();
-
             cc = a.getCc();
         }
         cc.setmActivity(activity);
         cc.setC(getContext());
     }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -60,15 +57,11 @@ public class ContactsFragment extends Fragment {
         ItemClickSupport.addTo(rvContacts).setOnItemLongClickListener(new ItemClickSupport.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
-
                 cc.DeleteContact(position);
                 return true;
             }
 
         });
-
-
-        // That's all!
         return v;
     }
 }

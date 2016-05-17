@@ -25,12 +25,15 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -67,6 +70,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private GoogleMap mGoogleMap;
     private String mPhone;
     private String mName;
+    private String mChannel = "route";
     private SharedPreferences mPrefs;
     private Activity mActivity;
     private Polyline polylineToAdd;
@@ -75,6 +79,7 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
     private JSONObject jsonMessage;
     private AutoCompleteTextView contact;
     private String urlString;
+    private Marker m;
 
     @Override
     public void onAttach(Activity activity) {
@@ -89,7 +94,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         View v = inflater.inflate(R.layout.fragment_drawroute, container,
                 false);
         //Get sharedpreferences in private mode (0)
-
         mPrefs = getContext().getSharedPreferences((MainActivity.getMainActivity().getString(R.string.pref_file)), 0);
         mPhone = mPrefs.getString(MainActivity.getMainActivity().getString(R.string.pref_phone), "");
         mName = mPrefs.getString(MainActivity.getMainActivity().getString(R.string.pref_username),"");
@@ -111,7 +115,6 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 }
             });
             LocationManager lm = (LocationManager) getActivity().getSystemService(this.getContext().LOCATION_SERVICE);
-
             if (ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
@@ -170,8 +173,8 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                             getRoute(destinationString, locationString);
                         }
                         MainActivity a = MainActivity.getMainActivity();
-
-                        a.getPc().sendFollowMeNotification(phone, locationString, destinationString);
+                        guidePhone = phone;
+                        a.getPc().sendFollowMeNotification(guidePhone, locationString, destinationString);
                         } else {
                             Toast.makeText(getContext(), R.string.cannot_get_location, Toast.LENGTH_LONG).show();
                         }
@@ -291,10 +294,10 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
     }
 
-    public void showAlertDialog(String arg2) {
+    public void showAlertDialog(String message, String arg2) {
         showAlertDialogTask alertDialogTask = new showAlertDialogTask();
         try {
-            alertDialogTask.execute(arg2).get();
+            alertDialogTask.execute(message,arg2).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -444,13 +447,26 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
                 }
             }
             if (!onRoute) {
-                MainActivity a = MainActivity.getMainActivity();
-
-                a.getPc().sendLeftRouteNotification(location);
+                new AlertDialog.Builder(getContext())
+                        .setTitle(mActivity.getString(R.string.left_designated_route))
+                        .setMessage(mActivity.getString(R.string.are_you_ok))
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                MainActivity a = MainActivity.getMainActivity();
+                                a.getPc().sendLeftRouteNotification(location,true);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                MainActivity a = MainActivity.getMainActivity();
+                                a.getPc().sendLeftRouteNotification(location,false);
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
             }
         }
     }
-
     private class showAlertDialogTask extends AsyncTask<String, String, String> {
         @Override
         protected void onPreExecute() {
@@ -459,19 +475,20 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
 
         @Override
         protected String doInBackground(final String... params) {
-            final String par = params[0];
+            final String message = params[0];
+            final String route = params[1];
 
-            return par;
+            return message+":"+route;
         }
-
         @Override
         protected void onPostExecute(final String par) {
+            final String[] params = par.split(":");
             new AlertDialog.Builder(getContext())
                     .setTitle(MainActivity.getMainActivity().getString(R.string.title_guide_friend))
-                    .setMessage(MainActivity.getMainActivity().getString(R.string.will_you_guide))
+                    .setMessage(params[0])
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            drawContactRoute(par);
+                            drawContactRoute(params[1]);
                         }
                     })
                     .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
