@@ -84,7 +84,6 @@ public class MainController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         if (regId.isEmpty()) {
             registerInBackground();
         } else {
@@ -134,15 +133,12 @@ public class MainController {
                     if (gcm == null) {
                         gcm = GoogleCloudMessaging.getInstance(mActivity.getBaseContext());
                     }
-
                     // Unregister from GCM
                     gcm.unregister();
-
                     // Remove Registration ID from memory
                     removeRegistrationId();
                     // Disable Push Notification
                     MainActivity a = MainActivity.getMainActivity();
-
                     a.getPc().disablePushNotificationsOnChannel(regId);
                 } catch (Exception e) {
                 }
@@ -152,14 +148,12 @@ public class MainController {
     }
 
     private void removeRegistrationId() throws Exception {
-
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.remove("gcmRegID");
         editor.apply();
     }
 
     private void storeRegistrationId(String regId) throws Exception {
-
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString("gcmRegID", regId);
         editor.apply();

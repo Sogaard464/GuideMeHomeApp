@@ -53,11 +53,8 @@ public class ContactsController {
     private ContactsAdapter adapter;
 
     public ContactsController() {
-    }
-
-    public void InitializeFragment(Context c) {
         //Get sharedpreferences in private mode (0)
-        mPrefs = c.getSharedPreferences("user", 0);
+        mPrefs = MainActivity.getMainActivity().getSharedPreferences("user", 0);
         mPhone = mPrefs.getString("phone", "");
         mName = mPrefs.getString("username", "");
         Gson gson = new Gson();
@@ -75,6 +72,10 @@ public class ContactsController {
         });
         // Create adapter passing in the sample user data
         adapter = new ContactsAdapter(contacts);
+    }
+
+    public void InitializeFragment(Context c) {
+
     }
 
     public ContactsAdapter getAdapter() {

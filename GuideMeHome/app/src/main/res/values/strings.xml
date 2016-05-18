@@ -56,4 +56,5 @@
     <string name="cmd_route_left_help">route_left_help</string>
     <string name="left_the_route_is_okay">" left the route, but is okay"</string>
     <string name="left_route_needs_help">" left the route, and needs help!"</string>
+    <string name="application_needs_permission">You need to give permissions, to use this application!</string>
 </resources>

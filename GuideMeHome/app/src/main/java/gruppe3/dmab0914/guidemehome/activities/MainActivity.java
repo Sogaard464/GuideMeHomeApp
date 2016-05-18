@@ -1,5 +1,6 @@
 package gruppe3.dmab0914.guidemehome.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,11 +14,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import gruppe3.dmab0914.guidemehome.R;
@@ -85,13 +89,26 @@ public class MainActivity extends AppCompatActivity {
         onNewIntent(getIntent());
         ma = this;
         mc = new MainController();
-
         mc.setmActivity(getMainActivity());
         if (mc.isTokenValid() == true) {
-            cc = new ContactsController();
-            pc = new PubNubController();
-            initiliaseUI();
-            mc.register();
+            int hasFineLocationPermission = ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION );
+                int hasCoarseLocationPermission = ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION);
+                List<String> permissions = new ArrayList<String>();
+                if( hasFineLocationPermission != PackageManager.PERMISSION_GRANTED ) {
+                    permissions.add( Manifest.permission.ACCESS_FINE_LOCATION );
+                }
+                if( hasCoarseLocationPermission != PackageManager.PERMISSION_GRANTED ) {
+                    permissions.add( Manifest.permission.ACCESS_COARSE_LOCATION );
+                }
+                if( !permissions.isEmpty() ) {
+                    ActivityCompat.requestPermissions(MainActivity.getMainActivity(), permissions.toArray( new String[permissions.size()] ),1  );
+                }
+                if(permissions.isEmpty()){
+                    pc = new PubNubController();
+                    cc = new ContactsController();
+                    initiliaseUI();
+                    mc.register();
+            }
         } else {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 1);
@@ -129,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         finish();
         startActivity(i);
-
     }
 
 
@@ -138,17 +154,32 @@ public class MainActivity extends AppCompatActivity {
         //if loginactivity ends succesfully initialize UI
         if (requestCode == 1) {
             if (resultCode == 1) {
-                pc = new PubNubController();
-                cc = new ContactsController();
-                initiliaseUI();
+                int hasFineLocationPermission = ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION );
+                int hasCoarseLocationPermission = ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION);
+                List<String> permissions = new ArrayList<String>();
+                if( hasFineLocationPermission != PackageManager.PERMISSION_GRANTED ) {
+                    permissions.add( Manifest.permission.ACCESS_FINE_LOCATION );
+                }
+                if( hasCoarseLocationPermission != PackageManager.PERMISSION_GRANTED ) {
+                    permissions.add( Manifest.permission.ACCESS_COARSE_LOCATION );
+                }
+                if( !permissions.isEmpty() ) {
+                    ActivityCompat.requestPermissions(MainActivity.getMainActivity(), permissions.toArray( new String[permissions.size()] ),1  );
+                }
+                if(permissions.isEmpty()){
+                    pc = new PubNubController();
+                    cc = new ContactsController();
+                    initiliaseUI();
+                    mc.register();
+                }
             }
         }
     }
-
     private void initiliaseUI() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -158,12 +189,9 @@ public class MainActivity extends AppCompatActivity {
                     drf.getUpdatedContacts();
                 }
             }
-
             @Override
             public void onPageScrolled(int arg0, float arg1, int arg2) {
-
             }
-
             @Override
             public void onPageScrollStateChanged(int arg0) {
 
@@ -172,18 +200,31 @@ public class MainActivity extends AppCompatActivity {
         mc.setupViewPager(viewPager, getSupportFragmentManager());
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+    }
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch ( requestCode ) {
+            case 1: {
+                for( int i = 0; i < permissions.length; i++ ) {
+                    if( grantResults[i] == PackageManager.PERMISSION_GRANTED ) {
+                        Log.d( "Permissions", "Permission Granted: " + permissions[i] );
+                        pc = new PubNubController();
+                        cc = new ContactsController();
+                        initiliaseUI();
+                        mc.register();
+                    } else if( grantResults[i] == PackageManager.PERMISSION_DENIED ) {
+                        Log.d( "Permissions", "Permission Denied: " + permissions[i] );
+                        finish();
+
+                    }
+                }
+            }
+            break;
+            default: {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
         }
-
     }
     public Boolean getmForeground() {
         return mForeground;

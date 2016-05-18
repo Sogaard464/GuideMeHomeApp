@@ -39,7 +39,7 @@ public class ContactsFragment extends Fragment {
             MainActivity a = MainActivity.getMainActivity();
             cc = a.getCc();
         }
-        cc.InitializeFragment(getContext());
+        //cc.InitializeFragment(getContext());
         Button addContactButton = (Button) v.findViewById(R.id.addButton);
         addContactButton.setOnClickListener(new View.OnClickListener() {
             @Override
