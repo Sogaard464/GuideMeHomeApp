@@ -74,7 +74,6 @@ public class MainController {
         adapter.addFragment(new DrawRouteFragment(), mActivity.getString(R.string.map_fragment_title));
         viewPager.setOffscreenPageLimit(2);
         viewPager.setAdapter(adapter);
-
     }
 
     public void register() {

@@ -42,4 +42,9 @@
     <string name="wants_to_be_guided_home">" vil guides."</string>
     <string name="will_you_guide">Vil du guide din ven?</string>
     <string name="add_contact_title">Tilføj kontakt...</string>
+    <string name="left_the_route_is_okay">" forlod ruten, men er okay"</string>
+    <string name="left_route_needs_help">" forlod ruten, og har brug for hjælp!"</string>
+    <string name="left_designated_route">Du har forladt ruten</string>
+    <string name="application_needs_permission">Du skal give disse tilladelser, for at kunne bruge applikationen!</string>
+    <string name="are_you_ok">Er du OK?</string>
 </resources>

@@ -235,8 +235,8 @@ public class ContactsController {
     public void showAcceptDialog(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new ShowAcceptDialogRunnable(jsonMessage));
     }
-public void showLeftDialog(String title,String message){
-    mActivity.runOnUiThread(new LeftRouteDialogRunnable(title,message));
+    public void showLeftDialog(String name,String message){
+    mActivity.runOnUiThread(new LeftRouteDialogRunnable(name,message));
 }
     public void acceptedRunnable(JSONObject jsonMessage) {
         mActivity.runOnUiThread(new AcceptedRunable(jsonMessage));
@@ -562,10 +562,10 @@ public void showLeftDialog(String title,String message){
 
     }
     public class LeftRouteDialogRunnable implements Runnable {
-        private String title;
+        private String name;
         private String message;
-        public LeftRouteDialogRunnable(String title, String message) {
-            this.title = title;
+        public LeftRouteDialogRunnable(String name, String message) {
+            this.name = name;
             this.message = message;
         }
 
@@ -574,11 +574,11 @@ public void showLeftDialog(String title,String message){
             dialog.setCanceledOnTouchOutside(false);
             dialog.setCancelable(false);
             dialog.setContentView(R.layout.dialog_allowcontact);
-            dialog.setTitle(title);
+            dialog.setTitle(MainActivity.getMainActivity().getString(R.string.left_designated_route));
 
             // set the custom dialog components - text, image and button
             final TextView textview = (TextView) dialog.findViewById(R.id.textView);
-            textview.setText(message);
+            textview.setText(name + " " +message);
             Button denyButton = (Button) dialog.findViewById(R.id.dialogButtonDeny);
             denyButton.setVisibility(View.GONE);
             Button allowButton = (Button) dialog.findViewById(R.id.dialogButtonAllow);

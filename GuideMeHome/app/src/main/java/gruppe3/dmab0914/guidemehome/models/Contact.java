@@ -5,10 +5,8 @@ import android.location.Location;
 public class Contact {
     private String mName;
     private String mPhone;
-    private Location mLocation;
     private boolean mCan_see;
     private boolean mWill_see;
-    private boolean mOnlineStatus;
 
     public Contact(String name, String phone) {
         mName = name;
@@ -37,24 +35,12 @@ public class Contact {
         return mName;
     }
 
-    public boolean isOnline() {
-        return mOnlineStatus;
-    }
-
     public String getmPhone() {
         return mPhone;
     }
 
     public void setmPhone(String mPhone) {
         this.mPhone = mPhone;
-    }
-
-    public Location getmLocation() {
-        return mLocation;
-    }
-
-    public void setmLocation(Location mLocation) {
-        this.mLocation = mLocation;
     }
 
 }

@@ -95,20 +95,21 @@ public class PubNubController {
             try {
                 jsonMessagePush = jsonMessage.getJSONObject("pn_gcm").getJSONObject("data");
                 String msg = jsonMessagePush.getString("GCMSays");
-                if (msg.contains(MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home))) {
+                String name = jsonMessagePush.getString("Name");
+                if (msg.contains("wants to be guided") || msg.contains("vil guides")) {
                     DrawRouteFragment drf = (DrawRouteFragment) MainActivity.getMainActivity().getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
-                    drf.showAlertDialog(msg,jsonMessagePush.getString("Arg2"));
+                    drf.showAlertDialog(name + " " + MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home),jsonMessagePush.getString("Arg2"));
                 }
-                else if(msg.contains(MainActivity.getMainActivity().getString(R.string.left_the_route_is_okay))){
+                else if(msg.contains("left the route, but is okay") || msg.contains("forlod ruten, men er okay")){
                     MainActivity a = MainActivity.getMainActivity();
                     ContactsController cc = a.getCc();
-                    cc.showLeftDialog(MainActivity.getMainActivity().getString(R.string.left_designated_route),msg);
+                    cc.showLeftDialog(name,MainActivity.getMainActivity().getString(R.string.left_the_route_is_okay));
 
                 }
-                else if(msg.contains(MainActivity.getMainActivity().getString(R.string.left_route_needs_help))){
+                else if(msg.contains("left the route, and needs help!") || msg.contains("forlod ruten, og har brug for hjælp!")){
                     MainActivity a = MainActivity.getMainActivity();
                     ContactsController cc = a.getCc();
-                    cc.showLeftDialog(MainActivity.getMainActivity().getString(R.string.left_designated_route),msg);
+                    cc.showLeftDialog(name,MainActivity.getMainActivity().getString(R.string.left_route_needs_help));
 
 
                 }
@@ -212,8 +213,9 @@ public class PubNubController {
         PnGcmMessage gcmMessage = new PnGcmMessage();
         JSONObject jso = new JSONObject();
         try {
-            jso.put("GCMSays", mName + MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home));
+            jso.put("GCMSays", MainActivity.getMainActivity().getString(R.string.wants_to_be_guided_home));
             jso.put("Arg2", locationString + ";" + destinationString);
+            jso.put("Name", mName);
         } catch (JSONException e) {
         }
         gcmMessage.setData(jso);
@@ -234,8 +236,9 @@ public class PubNubController {
         JSONObject jso = new JSONObject();
         if(ok){
         try {
-            jso.put("GCMSays", mName + MainActivity.getMainActivity().getString(R.string.left_the_route_is_okay));
+            jso.put("GCMSays", MainActivity.getMainActivity().getString(R.string.left_the_route_is_okay));
             jso.put("Arg2", location.latitude+","+location.longitude);
+            jso.put("Name", mName);
         } catch (JSONException e) {
         }
         gcmMessage.setData(jso);
@@ -253,8 +256,9 @@ public class PubNubController {
         }
         else{
             try {
-                jso.put("GCMSays", mName + MainActivity.getMainActivity().getString(R.string.left_route_needs_help));
+                jso.put("GCMSays", MainActivity.getMainActivity().getString(R.string.left_route_needs_help));
                 jso.put("Arg2", location.latitude+","+location.longitude);
+                jso.put("Name", mName);
             } catch (JSONException e) {
             }
             gcmMessage.setData(jso);

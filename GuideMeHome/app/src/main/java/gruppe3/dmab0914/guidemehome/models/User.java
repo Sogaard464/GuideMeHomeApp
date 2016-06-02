@@ -6,7 +6,6 @@ public class User {
     private String mName;
     private String mPhone;
     private String mEmail;
-    private boolean mGender;
     private String mToken;
     private ArrayList<Contact> mContacts = new ArrayList<>();
 
@@ -45,14 +44,6 @@ public class User {
 
     public void setEmail(String email) {
         mEmail = email;
-    }
-
-    public boolean isGender() {
-        return mGender;
-    }
-
-    public void setGender(boolean gender) {
-        mGender = gender;
     }
 
     public String getToken() {

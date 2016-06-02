@@ -61,14 +61,14 @@ public class MainActivity extends AppCompatActivity {
                     if (pushBundle.getString(key).contains(getString(R.string.wants_to_be_guided_home))) {
                         new AlertDialog.Builder(this)
                                 .setTitle(getString(R.string.title_guide_friend))
-                                .setMessage(getString(R.string.will_you_guide))
-                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                .setMessage(pushBundle.getString("Name") + " " +pushBundle.getString("Message"))
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         DrawRouteFragment drf = (DrawRouteFragment) getSupportFragmentManager().findFragmentByTag(MainActivity.getMainActivity().getString(R.string.drf_tag));
                                         drf.drawContactRoute(pushBundle.getString("Arg2"));
                                     }
                                 })
-                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                     }
                                 })

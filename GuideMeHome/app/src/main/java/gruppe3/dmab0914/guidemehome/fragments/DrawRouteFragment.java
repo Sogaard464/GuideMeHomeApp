@@ -383,10 +383,11 @@ public class DrawRouteFragment extends Fragment implements LocationListener {
         }
 
         public void run() {
-            polylines.remove("guide");
+            if(polylineToAdd != null){
+                polylineToAdd.remove();
+            }
             PolylineOptions po = new PolylineOptions().addAll(lines).width(20).color(Color.RED);
             polylineToAdd = mGoogleMap.addPolyline(po);
-            polylines.put("guide",po);
         }
     }
 
